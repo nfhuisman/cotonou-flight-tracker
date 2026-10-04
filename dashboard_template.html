@@ -112,6 +112,8 @@ const CUR = D.currency === "EUR" ? "€" : D.currency + " ";
 const money = v => CUR + Math.round(v).toLocaleString("en");
 const KIND = {"nonstop": "nonstop", "same-plane": "1 stop, same plane", "change": "1 change"};
 const fmt = (iso, opt) => new Date(iso + "T12:00:00").toLocaleDateString("en-GB", opt || {day: "numeric", month: "short"});
+const trip = d => d % 7 === 0 ? `${d / 7} weeks` : `${d} days`;
+const name = r => `${esc(r.city)} (${trip(r.stay)})`;
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const tip = document.getElementById("tip");
 function showTip(e, html) {
@@ -218,10 +220,10 @@ function card(r) {
       : diff >= 10 ? `<span class="badge high">▲ ${diff}% above usual</span>`
       : `<span class="badge">${diff > 0 ? "+" : ""}${diff}% vs usual</span>`;
   }
-  let body = `<div class="top"><div><span class="city">${esc(r.city)}</span><span class="code">${esc(r.code)}</span></div>${badge}</div>`;
+  let body = `<div class="top"><div><span class="city">${esc(r.city)}</span><span class="code">${trip(r.stay)}</span></div>${badge}</div>`;
   if (r.best) {
     const b = r.best;
-    body += `<div class="price">${money(b.price)} <small>return · ${r.stay} days</small></div>
+    body += `<div class="price">${money(b.price)} <small>return</small></div>
       <div class="meta">Cheapest: ${fmt(b.depart, {weekday:"short", day:"numeric", month:"short"})} → ${fmt(b.return, {day:"numeric", month:"short"})} · ${esc(b.airline)}, ${KIND[b.kind] || esc(b.kind)}${b.via ? " via " + esc(b.via) : ""} · <a href="${esc(b.link)}" target="_blank" rel="noopener">view</a></div>`;
     if (r.median30 && r.enough) body += `<div class="meta">Usual cheapest fare (30-day median): ${money(r.median30)}</div>`;
   } else if (D.run.searches) {
@@ -252,12 +254,12 @@ document.getElementById("sub").textContent =
 
 const deals = [];
 D.routes.forEach(r => {
-  if (r.route_deal) deals.push(`<li><b>${esc(r.city)}</b>: ${money(r.best.price)} return, ${fmt(r.best.depart)} → ${fmt(r.best.return)} (usually ${money(r.median30)}) · <a href="${esc(r.best.link)}" target="_blank" rel="noopener">view</a></li>`);
+  if (r.route_deal) deals.push(`<li><b>${name(r)}</b>: ${money(r.best.price)} return, ${fmt(r.best.depart)} → ${fmt(r.best.return)} (usually ${money(r.median30)}) · <a href="${esc(r.best.link)}" target="_blank" rel="noopener">view</a></li>`);
   const dd = r.departures.filter(d => d.deal && !(r.route_deal && d.depart === r.best.depart))
     .sort((a, b) => a.price / a.usual - b.price / b.usual);
   dd.slice(0, 3).forEach(d =>
-    deals.push(`<li><b>${esc(r.city)}</b>, ${fmt(d.depart)} → ${fmt(d.return)}: ${money(d.price)} (usually ${money(d.usual)} for this date) · <a href="${esc(d.link)}" target="_blank" rel="noopener">view</a></li>`));
-  if (dd.length > 3) deals.push(`<li><b>${esc(r.city)}</b>: ${dd.length - 3} more dates cheaper than usual (green bars below)</li>`);
+    deals.push(`<li><b>${name(r)}</b>, ${fmt(d.depart)} → ${fmt(d.return)}: ${money(d.price)} (usually ${money(d.usual)} for this date) · <a href="${esc(d.link)}" target="_blank" rel="noopener">view</a></li>`));
+  if (dd.length > 3) deals.push(`<li><b>${name(r)}</b>: ${dd.length - 3} more dates cheaper than usual (green bars below)</li>`);
 });
 if (!D.run.searches) document.getElementById("deals").innerHTML =
   `<div class="deals" style="border-left-color:var(--series)"><h2>Waiting for the first price check</h2>The tracker runs every morning; prices and charts appear here after the first run.</div>`;

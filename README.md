@@ -8,14 +8,18 @@ A dashboard with price charts is published on GitHub Pages.
 
 Set in [`routes.yaml`](routes.yaml); edit that file to add or remove destinations.
 
-- **Europe (home visits)**: Brussels, Paris CDG, Paris Orly, Amsterdam (one change allowed).
-  Two-week trips, a departure date every week, up to ~5 months ahead.
+- **Home visits**: Brussels (nonstop or same-plane stop) and Amsterdam (via Paris CDG with a
+  change of 2–6 hours), each for 3- and 4-week trips, up to 5 months ahead.
 - **Holiday ideas**: Istanbul, Casablanca, Addis Ababa, Dakar, Abidjan, Accra,
-  Libreville, Douala, Malabo. One-week trips, a departure date every two weeks.
+  Libreville, Douala, Malabo. Two-week trips, up to 4 months ahead, nonstop or
+  same-plane stop only.
 
-Only nonstop flights count, or one stop where it is probably the same plane (same
-airline, same aircraft type, stop under 2.5 hours). Amsterdam is the exception: there is
-no direct flight, so one change of plane is allowed.
+Departure dates sit on a fixed calendar grid (every 4 days for home visits, every 6 for
+holidays), so the same dates are re-checked daily and, over a few weeks, every day of the
+week is covered. That's about 315 searches per daily run.
+
+A "same-plane stop" is a best guess: one airline, same aircraft type, stop under
+2.5 hours. Check the itinerary before booking.
 
 ## When you get a message
 

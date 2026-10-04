@@ -48,26 +48,39 @@ def load_config(root: Path) -> tuple[dict, list[dict]]:
     routes = []
     for group in cfg["groups"]:
         for r in group["routes"]:
-            routes.append({
-                "code": r["code"],
-                "city": r["city"],
-                "note": r.get("note", ""),
-                "group": group["name"],
-                "allow_change": bool(r.get("allow_change", False)),
-                "stay_days": int(r.get("stay_days", group["stay_days"])),
-                "every_days": int(r.get("every_days", group["every_days"])),
-                "horizon_days": int(r.get("horizon_days", group["horizon_days"])),
-            })
+            stays = r.get("stay_days", group["stay_days"])
+            stays = stays if isinstance(stays, list) else [stays]
+            for stay in stays:
+                routes.append({
+                    "id": f'{r["code"]}-{int(stay)}',
+                    "code": r["code"],
+                    "city": r["city"],
+                    "note": r.get("note", ""),
+                    "group": group["name"],
+                    "allow_change": bool(r.get("allow_change", False)),
+                    "via": r.get("via") or None,
+                    "min_layover": r.get("min_layover_minutes"),
+                    "max_layover": r.get("max_layover_minutes"),
+                    "stay_days": int(stay),
+                    "every_days": int(r.get("every_days", group["every_days"])),
+                    "horizon_days": int(r.get("horizon_days", group["horizon_days"])),
+                })
     return settings, routes
 
 
+GRID_EPOCH = dt.date(2026, 1, 1)
+
+
 def sample_dates(route: dict, today: dt.date) -> list[tuple[dt.date, dt.date]]:
-    out = []
-    d = today + dt.timedelta(days=7)
+    """Departure dates on a fixed calendar grid, so the same dates are checked every day."""
+    step = route["every_days"]
+    first = today + dt.timedelta(days=7)
+    d = first + dt.timedelta(days=(-(first - GRID_EPOCH).days) % step)
     end = today + dt.timedelta(days=route["horizon_days"])
+    out = []
     while d <= end:
         out.append((d, d + dt.timedelta(days=route["stay_days"])))
-        d += dt.timedelta(days=route["every_days"])
+        d += dt.timedelta(days=step)
     return out
 
 
@@ -81,20 +94,36 @@ def _minutes(sd) -> int:
     return int(dt.datetime(y, m, d, h, mi).timestamp() // 60)
 
 
-def classify(itin) -> tuple[str, str]:
-    """Return (kind, via). kind: nonstop | same-plane | change | other."""
+def classify(itin) -> tuple[str, str, int | None]:
+    """Return (kind, via, layover_minutes). kind: nonstop | same-plane | change | other."""
     segs = itin.flights
     if len(segs) == 1:
-        return "nonstop", ""
+        return "nonstop", "", None
     if len(segs) == 2:
         via = segs[0].to_airport.code
         layover = _minutes(segs[1].departure) - _minutes(segs[0].arrival)
         one_airline = len(set(itin.airlines or [])) == 1
         same_type = bool(segs[0].plane_type) and segs[0].plane_type == segs[1].plane_type
         if one_airline and same_type and 0 <= layover <= 150:
-            return "same-plane", via
-        return "change", via
-    return "other", "/".join(s.to_airport.code for s in segs[:-1])
+            return "same-plane", via, layover
+        return "change", via, layover
+    return "other", "/".join(s.to_airport.code for s in segs[:-1]), None
+
+
+def suitable(route: dict, kind: str, via: str, layover: int | None) -> bool:
+    if kind in ("nonstop", "same-plane"):
+        return True
+    if kind != "change" or not route["allow_change"]:
+        return False
+    if route["via"] and via not in route["via"]:
+        return False
+    if layover is None:
+        return False
+    if route["min_layover"] is not None and layover < route["min_layover"]:
+        return False
+    if route["max_layover"] is not None and layover > route["max_layover"]:
+        return False
+    return True
 
 
 def fetch_google(origin: str, route: dict, depart: dt.date, ret: dt.date,
@@ -103,12 +132,17 @@ def fetch_google(origin: str, route: dict, depart: dt.date, ret: dt.date,
     from fast_flights import (FlightQuery, FlightsNotFound, Passengers,
                               create_query, get_flights)
 
+    leg_filters = {}
+    if route["allow_change"]:
+        leg_filters = {"connecting_airports": route["via"],
+                       "min_layover_minutes": route["min_layover"],
+                       "max_layover_minutes": route["max_layover"]}
     q = create_query(
         flights=[
             FlightQuery(date=depart.isoformat(), from_airport=origin,
-                        to_airport=route["code"]),
+                        to_airport=route["code"], **leg_filters),
             FlightQuery(date=ret.isoformat(), from_airport=route["code"],
-                        to_airport=origin),
+                        to_airport=origin, **leg_filters),
         ],
         trip="round-trip",
         seat="economy",
@@ -123,13 +157,12 @@ def fetch_google(origin: str, route: dict, depart: dt.date, ret: dt.date,
     except FlightsNotFound:
         return None
 
-    allowed = {"nonstop", "same-plane"} | ({"change"} if route["allow_change"] else set())
     best = None
     for itin in results:
         if not itin.price:
             continue
-        kind, via = classify(itin)
-        if kind not in allowed:
+        kind, via, layover = classify(itin)
+        if not suitable(route, kind, via, layover):
             continue
         if best is None or itin.price < best["price"]:
             best = {
@@ -195,8 +228,8 @@ def analyse(rows: list[dict], routes: list[dict], settings: dict, today: str) ->
 
     summary, deals = [], []
     for route in routes:
-        code = route["code"]
-        rr = by_route.get(code, [])
+        rid = route["id"]
+        rr = by_route.get(rid, [])
 
         # cheapest fare per check day
         daily: dict[str, dict] = {}
@@ -239,7 +272,7 @@ def analyse(rows: list[dict], routes: list[dict], settings: dict, today: str) ->
                           "basis": "the average for this departure date"})
 
         summary.append({
-            "code": code, "city": route["city"], "group": route["group"],
+            "id": rid, "code": route["code"], "city": route["city"], "group": route["group"],
             "note": route["note"], "stay": route["stay_days"],
             "history": [[d, r["price"]] for d, r in history],
             "median30": round(median) if median else None,
@@ -257,7 +290,7 @@ def filter_new_deals(deals: list[dict], state: dict, settings: dict, today: str)
     t = dt.date.fromisoformat(today)
     fresh = []
     for d in deals:
-        key = f'{d["route"]["code"]}|{d["row"]["depart"]}'
+        key = f'{d["route"]["id"]}|{d["row"]["depart"]}'
         prev = state.get(key)
         stale = prev and (t - dt.date.fromisoformat(prev["date"])).days > 14
         if prev is None or stale or d["row"]["price"] <= prev["price"] * (1 - drop):
@@ -303,6 +336,10 @@ def send_telegram(text: str) -> bool:
     return True
 
 
+def weeks(days: int) -> str:
+    return f"{days // 7} weeks" if days % 7 == 0 else f"{days} days"
+
+
 def money(cur: str, v) -> str:
     sym = {"EUR": "€", "USD": "$", "GBP": "£"}.get(cur)
     return f"{sym}{round(v):,}" if sym else f"{cur} {round(v):,}"
@@ -315,7 +352,7 @@ def deal_message(deals: list[dict], cur: str, dashboard: str) -> str:
         pct = round((1 - r["price"] / d["usual"]) * 100)
         via = f' via {r["via"]}' if r.get("via") else ""
         parts.append(
-            f'<b>Cotonou → {route["city"]}</b>: {money(cur, r["price"])} return\n'
+            f'<b>Cotonou → {route["city"]}</b> ({weeks(route["stay_days"])}): {money(cur, r["price"])} return\n'
             f'{fmt_date(r["depart"])} → {fmt_date(r["return"])} · {r["airline"]}, '
             f'{KIND_LABEL.get(r["kind"], r["kind"])}{via}\n'
             f'{pct}% below {d["basis"]} ({money(cur, d["usual"])})\n'
@@ -330,13 +367,13 @@ def weekly_message(summary: list[dict], cur: str, dashboard: str) -> str:
     for s in summary:
         b = s["best"]
         if not b:
-            lines.append(f'{s["city"]}: no suitable flights found today')
+            lines.append(f'{s["city"]} ({weeks(s["stay"])}): no suitable flights found today')
             continue
         vs = ""
         if s["enough"] and s["median30"]:
             diff = round((b["price"] / s["median30"] - 1) * 100)
             vs = f' ({diff:+d}% vs usual)'
-        lines.append(f'{s["city"]}: <b>{money(cur, b["price"])}</b>{vs}, '
+        lines.append(f'{s["city"]} ({weeks(s["stay"])}): <b>{money(cur, b["price"])}</b>{vs}, '
                      f'{fmt_date(b["depart"])}, {b["airline"]}')
     if dashboard:
         lines.append(f'\n<a href="{dashboard}">Open the dashboard</a>')
@@ -379,7 +416,7 @@ def dashboard_url() -> str:
     return ""
 
 
-def run(root: Path, today: dt.date, fetch, pause=(2.0, 5.0), notify=True,
+def run(root: Path, today: dt.date, fetch, pause=(1.5, 4.0), notify=True,
         log=print) -> dict:
     settings, routes = load_config(root)
     origin = settings.get("origin", "COO")
@@ -393,19 +430,19 @@ def run(root: Path, today: dt.date, fetch, pause=(2.0, 5.0), notify=True,
             best = fetch(origin, route, d, r, settings)
         except Exception as e:  # keep going; one bad search shouldn't stop the run
             failed += 1
-            log(f"[{i}/{len(jobs)}] {route['code']} {d}: ERROR {type(e).__name__}: {e}")
+            log(f"[{i}/{len(jobs)}] {route['id']} {d}: ERROR {type(e).__name__}: {e}")
             best = None
         else:
             if best:
                 ok += 1
-                new_rows.append({"checked": tday, "route": route["code"],
+                new_rows.append({"checked": tday, "route": route["id"],
                                  "depart": d.isoformat(), "return": r.isoformat(),
                                  "currency": cur, **best})
-                log(f"[{i}/{len(jobs)}] {route['code']} {d}: {cur} {best['price']} "
+                log(f"[{i}/{len(jobs)}] {route['id']} {d}: {cur} {best['price']} "
                     f"{best['airline']} ({best['kind']})")
             else:
                 empty += 1
-                log(f"[{i}/{len(jobs)}] {route['code']} {d}: no suitable flight")
+                log(f"[{i}/{len(jobs)}] {route['id']} {d}: no suitable flight")
         if pause and i < len(jobs):
             time.sleep(random.uniform(*pause))
 
@@ -454,7 +491,7 @@ AIR = {"BRU": "Brussels Airlines", "CDG": "Air France", "ORY": "Corsair",
 def make_sim_fetch(day_index: int, seed: int, crash_on: int | None = None):
     def fetch(origin, route, d, r, settings):
         rnd = random.Random(f"{seed}-{route['code']}-{d}-{day_index}")
-        base = BASE.get(route["code"], 500)
+        base = BASE.get(route["code"], 500) * (1 + (route["stay_days"] - 14) / 100)
         season = 1.25 if d.month == 12 and d.day > 15 else 1.0
         noise = rnd.uniform(0.92, 1.1)
         promo = 0.7 if (day_index == crash_on and route["code"] in ("BRU", "IST")) else 1.0

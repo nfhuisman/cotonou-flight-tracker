@@ -3,12 +3,17 @@
 # Edit this file to add or remove destinations. Every route is searched as a
 # round trip from Cotonou (COO) for one adult in economy, in EUR.
 #
-#   stay_days      length of the trip (return = departure + stay_days)
-#   every_days     how far apart the sampled departure dates are
-#   horizon_days   how far ahead to look
-#   allow_change   false = only nonstop flights, or one stop where it's likely
-#                  the same plane (same airline + same aircraft type + short stop)
-#                  true  = also allow one change of plane (e.g. via Paris)
+#   stay_days      trip length in days; a list tracks several trip lengths
+#   every_days     spacing of the departure dates that are checked. The dates sit
+#                  on a fixed calendar grid, so the same dates are re-checked every
+#                  day (needed to see their price move). Use a number that is not a
+#                  multiple of 7, so the dates rotate through every day of the week.
+#   horizon_days   how far ahead to look (150 ≈ 5 months)
+#   allow_change   false = only nonstop, or one stop where it's likely the same
+#                  plane (same airline + aircraft type, short stop)
+#                  true  = one change of plane is allowed
+#   via            airports where a change is allowed (only with allow_change)
+#   min_layover_minutes / max_layover_minutes   limits for that change
 
 settings:
   origin: COO
@@ -20,20 +25,24 @@ settings:
   realert_drop: 0.05        # alert again for the same trip only if it drops another 5%
 
 groups:
-  - name: Europe (home visits)
-    stay_days: 14
-    every_days: 7
+  - name: Home visits
+    stay_days: [21, 28]
+    every_days: 4
     horizon_days: 150
     routes:
       - {code: BRU, city: Brussels}
-      - {code: CDG, city: Paris Charles de Gaulle}
-      - {code: ORY, city: Paris Orly}
-      - {code: AMS, city: Amsterdam, allow_change: true, note: "No direct flight; one change, usually in Paris"}
+      - code: AMS
+        city: Amsterdam
+        note: "Via Paris CDG, with a change of at least 2 hours"
+        allow_change: true
+        via: [CDG]
+        min_layover_minutes: 120
+        max_layover_minutes: 360
 
   - name: Holiday ideas (direct)
-    stay_days: 7
-    every_days: 14
-    horizon_days: 150
+    stay_days: 14
+    every_days: 6
+    horizon_days: 120
     routes:
       - {code: IST, city: Istanbul}
       - {code: CMN, city: Casablanca}
