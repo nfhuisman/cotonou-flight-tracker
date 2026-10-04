@@ -1,0 +1,46 @@
+# Cotonou flight price tracker — what to watch
+#
+# Edit this file to add or remove destinations. Every route is searched as a
+# round trip from Cotonou (COO) for one adult in economy, in EUR.
+#
+#   stay_days      length of the trip (return = departure + stay_days)
+#   every_days     how far apart the sampled departure dates are
+#   horizon_days   how far ahead to look
+#   allow_change   false = only nonstop flights, or one stop where it's likely
+#                  the same plane (same airline + same aircraft type + short stop)
+#                  true  = also allow one change of plane (e.g. via Paris)
+
+settings:
+  origin: COO
+  currency: EUR
+  adults: 1
+  # A fare counts as a deal when it is this much below the usual price
+  deal_threshold: 0.15      # 15% below the median of the last 30 days
+  min_history_days: 7       # no alerts until a route has this many days of history
+  realert_drop: 0.05        # alert again for the same trip only if it drops another 5%
+
+groups:
+  - name: Europe (home visits)
+    stay_days: 14
+    every_days: 7
+    horizon_days: 150
+    routes:
+      - {code: BRU, city: Brussels}
+      - {code: CDG, city: Paris Charles de Gaulle}
+      - {code: ORY, city: Paris Orly}
+      - {code: AMS, city: Amsterdam, allow_change: true, note: "No direct flight; one change, usually in Paris"}
+
+  - name: Holiday ideas (direct)
+    stay_days: 7
+    every_days: 14
+    horizon_days: 150
+    routes:
+      - {code: IST, city: Istanbul}
+      - {code: CMN, city: Casablanca}
+      - {code: ADD, city: Addis Ababa}
+      - {code: DSS, city: Dakar}
+      - {code: ABJ, city: Abidjan}
+      - {code: ACC, city: Accra}
+      - {code: LBV, city: Libreville}
+      - {code: DLA, city: Douala}
+      - {code: SSG, city: Malabo}

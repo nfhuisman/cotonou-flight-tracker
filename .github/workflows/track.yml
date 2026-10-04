@@ -1,0 +1,52 @@
+name: Track flight prices
+
+on:
+  schedule:
+    - cron: "17 5 * * *"   # every day at 06:17 Cotonou time (05:17 UTC)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: What to run
+        type: choice
+        options: [track, test-telegram]
+        default: track
+
+permissions:
+  contents: write
+
+concurrency: flight-tracker
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: pip install -r requirements.txt
+
+      - name: Send a test message to Telegram
+        if: inputs.mode == 'test-telegram'
+        run: python tracker.py --test-telegram
+
+      - name: Check prices
+        if: inputs.mode != 'test-telegram'
+        run: python tracker.py
+
+      - name: Save prices and dashboard
+        if: inputs.mode != 'test-telegram'
+        run: |
+          git config user.name "flight-tracker"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data docs
+          git diff --cached --quiet || git commit -m "Prices $(date -u +%F)"
+          git push

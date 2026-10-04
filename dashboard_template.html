@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flights from Cotonou</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f4f3ef;
+  --surface: #fcfcfb;
+  --border: #e3e1da;
+  --grid: #ecebe6;
+  --text: #0b0b0b;
+  --text-2: #52514e;
+  --muted: #7a7974;
+  --series: #2a78d6;
+  --series-soft: rgba(42,120,214,.14);
+  --good: #0ca30c;
+  --good-ink: #0a7a0a;
+  --warn-ink: #9a5b00;
+  --chip: #efeee9;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #111110; --surface: #1a1a19; --border: #2e2e2c; --grid: #262624;
+    --text: #ffffff; --text-2: #c3c2b7; --muted: #8f8e86;
+    --series: #3987e5; --series-soft: rgba(57,135,229,.2);
+    --good: #0ca30c; --good-ink: #4fd14f; --warn-ink: #f2b54a; --chip: #262624;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111110; --surface: #1a1a19; --border: #2e2e2c; --grid: #262624;
+  --text: #ffffff; --text-2: #c3c2b7; --muted: #8f8e86;
+  --series: #3987e5; --series-soft: rgba(57,135,229,.2);
+  --good: #0ca30c; --good-ink: #4fd14f; --warn-ink: #f2b54a; --chip: #262624;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 20px 16px 48px; }
+header h1 { font-size: 24px; margin: 0 0 2px; letter-spacing: -.01em; }
+header p { margin: 0; color: var(--text-2); font-size: 13px; }
+.deals { margin: 18px 0 6px; background: var(--surface); border: 1px solid var(--border);
+  border-left: 4px solid var(--good); border-radius: 10px; padding: 12px 14px; }
+.deals h2 { font-size: 14px; margin: 0 0 6px; }
+.deals ul { margin: 0; padding-left: 18px; }
+.deals li { margin: 3px 0; }
+.deals a, .card a { color: var(--series); }
+h2.group { font-size: 13px; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-2); margin: 28px 0 10px; font-weight: 600; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 14px 14px 10px; min-width: 0; }
+.card.is-deal { border-color: var(--good); box-shadow: inset 0 0 0 1px var(--good); }
+.top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.city { font-weight: 650; font-size: 16px; }
+.code { color: var(--muted); font-size: 12px; margin-left: 4px; }
+.badge { font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 99px;
+  background: var(--chip); color: var(--text-2); white-space: nowrap; }
+.badge.good { color: var(--good-ink); }
+.badge.high { color: var(--warn-ink); }
+.price { font-size: 28px; font-weight: 700; letter-spacing: -.02em; margin: 6px 0 0;
+  font-variant-numeric: tabular-nums; }
+.price small { font-size: 13px; font-weight: 500; color: var(--text-2); letter-spacing: 0; }
+.meta { color: var(--text-2); font-size: 12.5px; margin-top: 1px; }
+.note { color: var(--muted); font-size: 12px; margin-top: 4px; }
+.label { font-size: 11.5px; color: var(--muted); margin: 12px 0 2px; }
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+svg text { fill: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+.bar { fill: var(--series); }
+.bar.deal { fill: var(--good); }
+.hit { fill: transparent; cursor: pointer; }
+.hit:hover + .bar, .bar.hl { opacity: .75; }
+.line { fill: none; stroke: var(--series); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.area { fill: var(--series-soft); }
+.medline { stroke: var(--text-2); stroke-width: 1; stroke-dasharray: 3 3; }
+.gridline { stroke: var(--grid); stroke-width: 1; }
+.cross { stroke: var(--muted); stroke-width: 1; }
+.dot { fill: var(--series); stroke: var(--surface); stroke-width: 2; }
+.empty { color: var(--muted); font-size: 12.5px; padding: 10px 0; }
+details { margin-top: 8px; font-size: 12.5px; }
+summary { cursor: pointer; color: var(--text-2); }
+table { width: 100%; border-collapse: collapse; margin-top: 6px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 4px 4px; border-bottom: 1px solid var(--grid); }
+th { color: var(--muted); font-weight: 500; }
+td.num, th.num { text-align: right; }
+#tip { position: fixed; pointer-events: none; z-index: 10; background: var(--surface);
+  color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px;
+  font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.15); display: none; max-width: 240px; }
+#tip b { font-variant-numeric: tabular-nums; }
+footer { margin-top: 32px; color: var(--muted); font-size: 12px; }
+footer p { margin: 4px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Flights from Cotonou</h1>
+    <p id="sub"></p>
+  </header>
+  <div id="deals"></div>
+  <div id="groups"></div>
+  <footer id="foot"></footer>
+</div>
+<div id="tip"></div>
+<script>
+const D = /*__DATA__*/null;
+const CUR = D.currency === "EUR" ? "€" : D.currency + " ";
+const money = v => CUR + Math.round(v).toLocaleString("en");
+const KIND = {"nonstop": "nonstop", "same-plane": "1 stop, same plane", "change": "1 change"};
+const fmt = (iso, opt) => new Date(iso + "T12:00:00").toLocaleDateString("en-GB", opt || {day: "numeric", month: "short"});
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const tip = document.getElementById("tip");
+function showTip(e, html) {
+  tip.innerHTML = html; tip.style.display = "block";
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX + 12, y = e.clientY + 12;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 12;
+  if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 12;
+  tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, y) + "px";
+}
+const hideTip = () => tip.style.display = "none";
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs, parent) => { const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; };
+function niceTicks(lo, hi) {
+  const span = hi - lo || 1, step0 = span / 3, mag = Math.pow(10, Math.floor(Math.log10(step0)));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => s >= step0);
+  const out = []; for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) out.push(v); return out;
+}
+
+// Bar chart: fare per departure date from today's check
+function departuresChart(r) {
+  const deps = r.departures;
+  const W = 320, H = 120, L = 34, B = 18, T = 6;
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img",
+    "aria-label": `Return fare by departure date to ${r.city}`});
+  const max = Math.max(...deps.map(d => d.price)) * 1.08;
+  const y = v => T + (H - T - B) * (1 - v / max);
+  niceTicks(0, max).forEach(v => { if (v === 0) return;
+    el("line", {x1: L, x2: W, y1: y(v), y2: y(v), class: "gridline"}, svg);
+    el("text", {x: L - 5, y: y(v) + 3, "text-anchor": "end"}, svg).textContent = money(v);
+  });
+  const slot = (W - L) / deps.length, bw = Math.max(3, Math.min(18, slot - 4));
+  const labelEvery = Math.ceil(deps.length / 5);
+  deps.forEach((d, i) => {
+    const cx = L + slot * i + slot / 2, top = y(d.price), h = H - B - top;
+    const g = el("g", {}, svg);
+    const hit = el("rect", {x: cx - slot / 2, y: T, width: slot, height: H - T - B, class: "hit"}, g);
+    const bar = el("path", {class: "bar" + (d.deal ? " deal" : ""),
+      d: `M${cx - bw/2},${H - B} V${top + 4} Q${cx - bw/2},${top} ${cx - bw/2 + 4},${top} H${cx + bw/2 - 4} Q${cx + bw/2},${top} ${cx + bw/2},${top + 4} V${H - B} Z`}, g);
+    if (d.deal) el("text", {x: cx, y: top - 3, "text-anchor": "middle", style: "fill:var(--good-ink);font-weight:700"}, g).textContent = "▼";
+    if (i % labelEvery === 0) el("text", {x: cx, y: H - 4, "text-anchor": "middle"}, svg).textContent = fmt(d.depart);
+    const html = `<b>${money(d.price)}</b> return${d.deal ? ' · <span style="color:var(--good-ink)">▼ cheaper than usual</span>' : ""}<br>` +
+      `${fmt(d.depart, {weekday:"short", day:"numeric", month:"short"})} → ${fmt(d.return, {weekday:"short", day:"numeric", month:"short"})}<br>` +
+      `${esc(d.airline)}, ${KIND[d.kind] || esc(d.kind)}${d.via ? " via " + esc(d.via) : ""}` +
+      (d.usual ? `<br><span style="color:var(--muted)">Usually ${money(d.usual)} for this date</span>` : "") +
+      `<br><span style="color:var(--muted)">Tap to open in Google Flights</span>`;
+    hit.addEventListener("mousemove", e => { bar.classList.add("hl"); showTip(e, html); });
+    hit.addEventListener("mouseleave", () => { bar.classList.remove("hl"); hideTip(); });
+    hit.addEventListener("click", () => window.open(d.link, "_blank", "noopener"));
+  });
+  return svg;
+}
+
+// Line chart: cheapest fare found on each check day
+function historyChart(r) {
+  const h = r.history.slice(-90);
+  const W = 320, H = 92, L = 34, B = 16, T = 6;
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img",
+    "aria-label": `Cheapest fare to ${r.city} over time`});
+  const vals = h.map(p => p[1]).concat(r.median30 ? [r.median30] : []);
+  let lo = Math.min(...vals), hi = Math.max(...vals); const pad = (hi - lo) * .15 || hi * .05;
+  lo -= pad; hi += pad;
+  const x = i => L + (W - L - 4) * (h.length === 1 ? .5 : i / (h.length - 1));
+  const y = v => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+  niceTicks(lo, hi).forEach(v => {
+    el("line", {x1: L, x2: W, y1: y(v), y2: y(v), class: "gridline"}, svg);
+    el("text", {x: L - 5, y: y(v) + 3, "text-anchor": "end"}, svg).textContent = money(v);
+  });
+  if (r.median30) {
+    el("line", {x1: L, x2: W, y1: y(r.median30), y2: y(r.median30), class: "medline"}, svg);
+  }
+  const pts = h.map((p, i) => `${x(i)},${y(p[1])}`);
+  el("path", {class: "area", d: `M${x(0)},${H - B} L${pts.join(" L")} L${x(h.length - 1)},${H - B} Z`}, svg);
+  el("path", {class: "line", d: "M" + pts.join(" L")}, svg);
+  el("text", {x: L, y: H - 3}, svg).textContent = fmt(h[0][0]);
+  if (h.length > 1) el("text", {x: W - 4, y: H - 3, "text-anchor": "end"}, svg).textContent = fmt(h[h.length - 1][0]);
+  const cross = el("line", {y1: T, y2: H - B, class: "cross", style: "display:none"}, svg);
+  const dot = el("circle", {r: 4, class: "dot", style: "display:none"}, svg);
+  el("circle", {cx: x(h.length - 1), cy: y(h[h.length - 1][1]), r: 4, class: "dot"}, svg);
+  const hit = el("rect", {x: L, y: 0, width: W - L, height: H - B, class: "hit"}, svg);
+  hit.addEventListener("mousemove", e => {
+    const b = svg.getBoundingClientRect(), sx = (e.clientX - b.left) * W / b.width;
+    const i = Math.max(0, Math.min(h.length - 1, Math.round((sx - L) / (W - L - 4) * (h.length - 1))));
+    cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i)); cross.style.display = "";
+    dot.setAttribute("cx", x(i)); dot.setAttribute("cy", y(h[i][1])); dot.style.display = "";
+    showTip(e, `${fmt(h[i][0], {weekday:"short", day:"numeric", month:"short"})}<br>Cheapest: <b>${money(h[i][1])}</b>` +
+      (r.median30 ? `<br><span style="color:var(--muted)">Dashed line: usual ${money(r.median30)}</span>` : ""));
+  });
+  hit.addEventListener("mouseleave", () => { cross.style.display = dot.style.display = "none"; hideTip(); });
+  return svg;
+}
+
+function card(r) {
+  const c = document.createElement("div");
+  c.className = "card" + (r.route_deal ? " is-deal" : "");
+  let badge;
+  if (!D.run.searches) badge = `<span class="badge">Not checked yet</span>`;
+  else if (!r.best) badge = `<span class="badge">No flights today</span>`;
+  else if (!r.enough) badge = `<span class="badge">Learning prices · ${r.history_days}/${D.minHistory} days</span>`;
+  else {
+    const diff = Math.round((r.best.price / r.median30 - 1) * 100);
+    badge = r.route_deal ? `<span class="badge good">▼ ${-diff}% below usual</span>`
+      : diff >= 10 ? `<span class="badge high">▲ ${diff}% above usual</span>`
+      : `<span class="badge">${diff > 0 ? "+" : ""}${diff}% vs usual</span>`;
+  }
+  let body = `<div class="top"><div><span class="city">${esc(r.city)}</span><span class="code">${esc(r.code)}</span></div>${badge}</div>`;
+  if (r.best) {
+    const b = r.best;
+    body += `<div class="price">${money(b.price)} <small>return · ${r.stay} days</small></div>
+      <div class="meta">Cheapest: ${fmt(b.depart, {weekday:"short", day:"numeric", month:"short"})} → ${fmt(b.return, {day:"numeric", month:"short"})} · ${esc(b.airline)}, ${KIND[b.kind] || esc(b.kind)}${b.via ? " via " + esc(b.via) : ""} · <a href="${esc(b.link)}" target="_blank" rel="noopener">view</a></div>`;
+    if (r.median30 && r.enough) body += `<div class="meta">Usual cheapest fare (30-day median): ${money(r.median30)}</div>`;
+  } else if (D.run.searches) {
+    body += `<div class="empty">No suitable flights found in today's check.</div>`;
+  }
+  if (r.note) body += `<div class="note">${esc(r.note)}</div>`;
+  c.innerHTML = body;
+  if (r.departures.length) {
+    c.insertAdjacentHTML("beforeend", `<div class="label">Fare by departure date (today's check)</div>`);
+    c.appendChild(departuresChart(r));
+  }
+  if (r.history.length > 1) {
+    c.insertAdjacentHTML("beforeend", `<div class="label">Cheapest fare over time</div>`);
+    c.appendChild(historyChart(r));
+  }
+  if (r.departures.length) {
+    const rows = r.departures.map(d => `<tr><td>${fmt(d.depart, {weekday:"short", day:"numeric", month:"short"})}</td>
+      <td class="num">${d.deal ? "▼ " : ""}${money(d.price)}</td><td class="num">${d.usual ? money(d.usual) : "–"}</td>
+      <td>${esc(d.airline)}</td><td><a href="${esc(d.link)}" target="_blank" rel="noopener">open</a></td></tr>`).join("");
+    c.insertAdjacentHTML("beforeend", `<details><summary>Show as table</summary><table>
+      <tr><th>Depart</th><th class="num">Fare</th><th class="num">Usual</th><th>Airline</th><th></th></tr>${rows}</table></details>`);
+  }
+  return c;
+}
+
+document.getElementById("sub").textContent =
+  `Return fares for 1 adult, economy · updated ${fmt(D.generated, {weekday:"long", day:"numeric", month:"long", year:"numeric"})}`;
+
+const deals = [];
+D.routes.forEach(r => {
+  if (r.route_deal) deals.push(`<li><b>${esc(r.city)}</b>: ${money(r.best.price)} return, ${fmt(r.best.depart)} → ${fmt(r.best.return)} (usually ${money(r.median30)}) · <a href="${esc(r.best.link)}" target="_blank" rel="noopener">view</a></li>`);
+  const dd = r.departures.filter(d => d.deal && !(r.route_deal && d.depart === r.best.depart))
+    .sort((a, b) => a.price / a.usual - b.price / b.usual);
+  dd.slice(0, 3).forEach(d =>
+    deals.push(`<li><b>${esc(r.city)}</b>, ${fmt(d.depart)} → ${fmt(d.return)}: ${money(d.price)} (usually ${money(d.usual)} for this date) · <a href="${esc(d.link)}" target="_blank" rel="noopener">view</a></li>`));
+  if (dd.length > 3) deals.push(`<li><b>${esc(r.city)}</b>: ${dd.length - 3} more dates cheaper than usual (green bars below)</li>`);
+});
+if (!D.run.searches) document.getElementById("deals").innerHTML =
+  `<div class="deals" style="border-left-color:var(--series)"><h2>Waiting for the first price check</h2>The tracker runs every morning; prices and charts appear here after the first run.</div>`;
+else if (deals.length) document.getElementById("deals").innerHTML =
+  `<div class="deals"><h2>▼ Cheaper than usual today</h2><ul>${deals.join("")}</ul></div>`;
+
+const groups = document.getElementById("groups");
+[...new Set(D.routes.map(r => r.group))].forEach(g => {
+  groups.insertAdjacentHTML("beforeend", `<h2 class="group">${esc(g)}</h2>`);
+  const grid = document.createElement("div"); grid.className = "grid";
+  D.routes.filter(r => r.group === g).forEach(r => grid.appendChild(card(r)));
+  groups.appendChild(grid);
+});
+
+const run = D.run;
+document.getElementById("foot").innerHTML =
+  `<p>Today's check: ${run.searches} searches · ${run.ok} fares found · ${run.empty} without suitable flights · ${run.failed} errors.</p>
+   <p>Only nonstop flights, or one stop where it's likely the same plane (same airline and aircraft, short stop), except where a route says otherwise. "Same plane" is a best guess, so check the itinerary before booking.</p>
+   <p>A fare is flagged when it is at least ${Math.round(D.threshold * 100)}% below the usual price. Prices come from Google Flights and can change by the time you book.</p>`;
+</script>
+</body>
+</html>
