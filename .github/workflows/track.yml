@@ -3,12 +3,14 @@ name: Track flight prices
 on:
   schedule:
     - cron: "17 5 * * *"   # every day at 06:17 Cotonou time (05:17 UTC)
+  push:
+    paths: [diagnose.py]   # changing the diagnostics script runs it once
   workflow_dispatch:
     inputs:
       mode:
         description: What to run
         type: choice
-        options: [track, test-telegram]
+        options: [track, test-telegram, diagnose]
         default: track
 
 permissions:
@@ -34,16 +36,25 @@ jobs:
       - name: Install
         run: pip install -r requirements.txt
 
+      - name: Diagnose search problems
+        if: inputs.mode == 'diagnose' || github.event_name == 'push'
+        run: |
+          python diagnose.py || true
+          git config user.name "flight-tracker"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/diagnostics.txt
+          git commit -m "Diagnostics $(date -u +%FT%H%M)" && git push || true
+
       - name: Send a test message to Telegram
         if: inputs.mode == 'test-telegram'
         run: python tracker.py --test-telegram
 
       - name: Check prices
-        if: inputs.mode != 'test-telegram'
+        if: github.event_name == 'schedule' || inputs.mode == 'track'
         run: python tracker.py
 
       - name: Save prices and dashboard
-        if: inputs.mode != 'test-telegram'
+        if: github.event_name == 'schedule' || inputs.mode == 'track'
         run: |
           git config user.name "flight-tracker"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

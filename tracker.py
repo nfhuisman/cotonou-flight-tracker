@@ -424,12 +424,16 @@ def run(root: Path, today: dt.date, fetch, pause=(1.5, 4.0), notify=True,
     tday = today.isoformat()
 
     new_rows, ok, empty, failed = [], 0, 0, 0
+    errors: list[str] = []
     jobs = [(route, d, r) for route in routes for d, r in sample_dates(route, today)]
     for i, (route, d, r) in enumerate(jobs, 1):
         try:
             best = fetch(origin, route, d, r, settings)
         except Exception as e:  # keep going; one bad search shouldn't stop the run
             failed += 1
+            if len(errors) < 5:
+                import traceback
+                errors.append(f"{route['id']} {d}:\n{traceback.format_exc(limit=5)}")
             log(f"[{i}/{len(jobs)}] {route['id']} {d}: ERROR {type(e).__name__}: {e}")
             best = None
         else:
@@ -447,6 +451,9 @@ def run(root: Path, today: dt.date, fetch, pause=(1.5, 4.0), notify=True,
             time.sleep(random.uniform(*pause))
 
     data = root / "data"
+    data.mkdir(parents=True, exist_ok=True)
+    (data / "last_errors.txt").write_text(
+        f"{tday}: {failed} of {len(jobs)} searches failed\n\n" + "\n".join(errors))
     append_prices(data / "prices.csv", new_rows)
     append_run(data / "runs.csv", tday, ok, failed, empty)
 
