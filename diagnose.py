@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Diagnose why Google Flights searches fail. Writes data/diagnostics.txt."""
+# Run 2: after adding typing_extensions
 
 from __future__ import annotations
 
