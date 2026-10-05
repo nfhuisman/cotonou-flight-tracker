@@ -1,46 +1,13 @@
-Live check 2026-10-05 13:05 UTC
-
-== ADD
-  tfs one-way: 0 itineraries, cheapest None, kinds {}
-  tfs round-trip: 0 itineraries, cheapest None, kinds {}
-  q one-way: 0 itineraries, cheapest None, kinds {}
-  q round-trip: 0 itineraries, cheapest None, kinds {}
-  q one-way gl=BJ: 0 itineraries, cheapest None, kinds {}
-  q round-trip gl=BJ: error page
-  tfs one-way gl=BJ: error page
-
-== SSG
-  tfs one-way: 1 itineraries, cheapest None, kinds {}
-  tfs round-trip: 0 itineraries, cheapest None, kinds {}
-  q one-way: 1 itineraries, cheapest None, kinds {}
-  q round-trip: error page
-  q one-way gl=BJ: 1 itineraries, cheapest None, kinds {}
-  q round-trip gl=BJ: error page
-  tfs one-way gl=BJ: 1 itineraries, cheapest None, kinds {}
-
-== LBV
-  tfs one-way: 0 itineraries, cheapest None, kinds {}
-  tfs round-trip: 0 itineraries, cheapest None, kinds {}
-  q one-way: error page
-  q round-trip: 0 itineraries, cheapest None, kinds {}
-  q one-way gl=BJ: 0 itineraries, cheapest None, kinds {}
-  q round-trip gl=BJ: error page
-  tfs one-way gl=BJ: 0 itineraries, cheapest None, kinds {}
-
-== AMS
-  tfs one-way: 0 itineraries, cheapest None, kinds {}
-  tfs round-trip: 0 itineraries, cheapest None, kinds {}
-  q one-way: 0 itineraries, cheapest None, kinds {}
-  q round-trip: error page
-  q one-way gl=BJ: error page
-  q round-trip gl=BJ: 0 itineraries, cheapest None, kinds {}
-  tfs one-way gl=BJ: 0 itineraries, cheapest None, kinds {}
-
-== BRU
-  tfs one-way: 24 itineraries, cheapest 618, kinds {'other@ABJ/IST': 4, 'other@CDG/LIN': 3, 'other@CDG/CPH': 3, 'other@ADD/FCO': 2}
-  tfs round-trip: error page
-  q one-way: error page
-  q round-trip: 0 itineraries, cheapest None, kinds {}
-  q one-way gl=BJ: 9 itineraries, cheapest 618, kinds {'other@CDG/LIN': 2, 'other@CDG/MXP': 2, 'change@ADD': 1, 'other@ABJ/IST': 1}
-  q round-trip gl=BJ: 0 itineraries, cheapest None, kinds {}
-  tfs one-way gl=BJ: 24 itineraries, cheapest 618, kinds {'other@ABJ/IST': 4, 'other@CDG/LIN': 3, 'other@CDG/CPH': 3, 'other@ADD/FCO': 2}
+Live check 2026-10-05 13:07 UTC
+BRU out 2026-11-04: None  (0.8s)
+BRU in 2026-11-25: None  (0.2s)
+AMS out 2026-11-04: {'price': 679, 'airline': 'Air France', 'kind': 'change', 'via': 'CDG'}  (2.4s)
+AMS in 2026-11-25: {'price': 997, 'airline': 'KLM, Air France', 'kind': 'change', 'via': 'CDG'}  (2.7s)
+IST out 2026-11-04: {'price': 626, 'airline': 'Turkish Airlines', 'kind': 'same-plane', 'via': 'ABJ'}  (0.3s)
+IST in 2026-11-18: {'price': 620, 'airline': 'Turkish Airlines', 'kind': 'nonstop', 'via': ''}  (0.3s)
+CMN out 2026-11-04: None  (0.4s)
+CMN in 2026-11-18: {'price': 589, 'airline': 'Royal Air Maroc', 'kind': 'nonstop', 'via': ''}  (0.4s)
+DSS out 2026-11-04: {'price': 384, 'airline': 'Air Senegal', 'kind': 'same-plane', 'via': 'ABJ'}  (0.4s)
+DSS in 2026-11-18: {'price': 319, 'airline': 'Air Senegal', 'kind': 'same-plane', 'via': 'ABJ'}  (0.5s)
+ABJ out 2026-11-04: {'price': 284, 'airline': 'Air Senegal', 'kind': 'nonstop', 'via': ''}  (0.5s)
+ABJ in 2026-11-18: {'price': 185, 'airline': 'Air Senegal', 'kind': 'nonstop', 'via': ''}  (0.5s)
