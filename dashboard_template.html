@@ -57,7 +57,7 @@ h2.group { font-size: 13px; text-transform: uppercase; letter-spacing: .06em;
 .card.is-deal { border-color: var(--good); box-shadow: inset 0 0 0 1px var(--good); }
 .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .city { font-weight: 650; font-size: 16px; }
-.code { color: var(--muted); font-size: 12px; margin-left: 4px; }
+.code { color: var(--muted); font-size: 12px; margin-left: 4px; white-space: nowrap; }
 .badge { font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 99px;
   background: var(--chip); color: var(--text-2); white-space: nowrap; }
 .badge.good { color: var(--good-ink); }
@@ -214,7 +214,7 @@ function card(r) {
   let badge;
   if (!D.run.searches) badge = `<span class="badge">Not checked yet</span>`;
   else if (!r.best) badge = `<span class="badge">No flights today</span>`;
-  else if (!r.enough) badge = `<span class="badge">Learning prices · ${r.history_days}/${D.minHistory} days</span>`;
+  else if (!r.enough) badge = `<span class="badge" title="Alerts start once ${D.minHistory} days of prices are collected">Learning · ${r.history_days + 1}/${D.minHistory}</span>`;
   else {
     const diff = Math.round((r.best.price / r.median30 - 1) * 100);
     badge = r.route_deal ? `<span class="badge good">▼ ${-diff}% below usual</span>`
@@ -278,7 +278,7 @@ const groups = document.getElementById("groups");
 const run = D.run;
 document.getElementById("foot").innerHTML =
   `<p>Today's check: ${run.searches} one-way searches · ${run.ok} fares found · ${run.empty} without suitable flights · ${run.failed} errors.</p>
-   <p>Only nonstop flights, or one stop where it's likely the same plane (same airline and aircraft, short stop), except where a route says otherwise. "Same plane" is a best guess, so check the itinerary before booking.</p>
+   <p>Only nonstop flights, or a stop where the same flight continues (same flight number, so you stay on board), except Amsterdam, which is the nonstop to Paris plus a separate flight on with at least 2 hours to change. Trips may return up to 2 days earlier or later than the trip length shown.</p>
    <p>Google Flights only shows round-trip prices for a few very popular routes, so each trip is priced as two one-way tickets (out + back). A return ticket can be cheaper, especially with Air France or Brussels Airlines, so use the "view" links to check return fares. "Cheaper than usual" compares like with like, so the alerts are not affected.</p>
    <p>A fare is flagged when it is at least ${Math.round(D.threshold * 100)}% below the usual price. Prices come from Google Flights and can change by the time you book.</p>`;
 </script>
