@@ -1,47 +1,45 @@
-Diagnostics 2026-10-05T09:56:09 UTC
-fast-flights: 3.1.0
-primp: 2.0.1
+Diagnostics 2026-10-05T10:01:53 UTC
+flights (fli): 0.10.0
 
-== RT CDG none (control)
-  insights p[5][:6]: [3, [None, 765], [None, 660], [None, -106], [None, 590], [None, 950]]
-  shape: p[0]=[None, [list, NoneType, NoneType, NoneType, NoneType, list]#6, 0, 'O3TDatXKLsLIr8oP18PL', 'HQ8qOmXILbOAAeicgwBG']#5 | p[1]=[[list, list]#2, [list, list]#2]#2 | p[3]=[[list, list, list, list, list, list, list, list, list, list, list, list, …]#17, 13, 0, 0, [int]#1]#5 | p[5]=[3, [NoneType, int]#2, [NoneType, int]#2, [NoneType, int]#2, [NoneType, int]#2, [NoneType, int]#2, 1, None, None, None, [list]#1, [list, NoneType, NoneType, Non | p[6]=[[list, NoneType, list]#3]#1 | p[7]=[[list, list]#2, [list, list]#2, [list, int, int]#3, [int, int]#2, [list]#1, [int, int, int, int]#4, None, [int]#1]#8 | p[11]=[[str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, s
-  text: LFW Gnassingbé Eyadéma International Airport , ACC Accra International Airport , BRU Brussels Airport 574 kg CO2e +26% emissions +26% emissions Price unavailable Business Class + Economy Departure Wed, Nov 4 574 kg CO2e +26% emissions +26% emissions Select flight Price unavailable 12:05 PM COO 9:15 AM +1 CDG Business Class + Economy Price unavailab
-  parsed: 17 itineraries; cheapest: [765, 881, 911, 967]
-     765 ['Air France'] [('COO', 'CDG', 'Boeing 777', (23, 50), (6, 25))]
-     881 ['Turkish Airlines'] [('COO', 'ABJ', 'Boeing 737MAX 8 Passenger', (23, 30), (23, 55)), ('ABJ', 'IST', 'Boeing 737MAX 8 Passenger', (1, 10), (11, 30)), ('IST', 'CDG', 'Airbus A321neo', (14, 30), (16, 15))]
-     911 ['Turkish Airlines'] [('COO', 'ABJ', 'Boeing 737MAX 8 Passenger', (23, 30), (23, 55)), ('ABJ', 'IST', 'Boeing 737MAX 8 Passenger', (1, 10), (11, 30)), ('IST', 'CDG', 'Airbus A321neo', (12, 45), (14, 30))]
+== RT BRU 21d nonstop country=None
+  0 combos in 1.1s
 
-== RT BRU none
-  insights p[5][:6]: None
-  shape: p[0]=[None, [list, NoneType, NoneType, NoneType, NoneType, list]#6, 0, 'PnTDarzVCpGdj8oPlMjm', 'H3yAskwRwZY4AAYXOQBG']#5 | p[1]=[[list, list]#2, [list, list]#2]#2 | p[7]=[None, [list, list]#2, [list]#1, None, [list]#1, [int, int, int, int]#4, None, [int]#1]#8
-  parsed: 0 itineraries; cheapest: []
+== RT BRU 21d nonstop country=BE
+  0 combos in 0.2s
 
-== OW BRU->COO on return date
-  insights p[5][:6]: [2, [None, 410], [None, 418], [None, 8], [None, 405], [None, 600]]
-  shape: p[0]=[None, [list, NoneType, NoneType, NoneType, NoneType, list]#6, 0, 'QHTDapWlG5Gdj8oPlMjm', 'H-X-TmKSORPUAaeFNQBG']#5 | p[1]=[[list, list]#2]#1 | p[2]=[[list]#1, None, 0, 0, [int]#1]#5 | p[3]=[[list, list, list, list, list, list, list, list, list, list, list, list, …]#16, 10, 0, 0, [int]#1]#5 | p[5]=[2, [NoneType, int]#2, [NoneType, int]#2, [NoneType, int]#2, [NoneType, int]#2, [NoneType, int]#2, 1, None, None, None, [list]#1, [list, NoneType, NoneType, Non | p[7]=[[list, list]#2, [list, list]#2, [list, int, int]#3, [int, int]#2, [list]#1, [int, int, int, int]#4, None, [int]#1]#8 | p[11]=[[str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, s
-  parsed: 17 itineraries; cheapest: [410, 621, 724, 790]
-     410 ['Royal Air Maroc'] [('BRU', 'CMN', 'Boeing 737MAX 8 Passenger', (17, 35), (19, 55)), ('CMN', 'COO', 'Boeing 737MAX 8 Passenger', (21, 45), (3, 15))]
-     621 ['Ethiopian'] [('BRU', 'ADD', 'Airbus A350', (21, 20), (6, 30)), ('ADD', 'COO', 'Boeing 737MAX 8 Passenger', (8, 30), (12, 5))]
-     724 ['LOT', 'Turkish Airlines'] [('BRU', 'WAW', 'Embraer 195', (13, 30), (15, 25)), ('WAW', 'IST', 'Boeing 737MAX 8 Passenger', (12, 50), (17, 35)), ('IST', 'COO', 'Boeing 737MAX 8 Passenger', (17, 15), (22, 30))]
+== RT IST 14d nonstop country=None
+  0 combos in 0.3s
 
-== OW IST->COO on return date
-  insights p[5][:6]: [3, [None, 440], [None, 417], [None, -24], [None, 400], [None, 520]]
-  shape: p[0]=[None, [list, NoneType, NoneType, NoneType, NoneType, list]#6, 0, 'QnTDaqG_OOHQr8oP7-jr', 'HEb6Enl_8Q_sAVu09gBG']#5 | p[1]=[[list, list]#2]#1 | p[2]=[[list, list, list, list]#4, None, 0, 0, [int]#1]#5 | p[3]=[[list, list, list, list, list, list, list, list, list, list, list, list, …]#36, 32, 0, 0, [int]#1]#5 | p[5]=[3, [NoneType, int]#2, [NoneType, int]#2, [NoneType, int]#2, [NoneType, int]#2, [NoneType, int]#2, 1, None, None, None, [list]#1, [list, NoneType, NoneType, Non | p[7]=[[list, list]#2, [list, list]#2, [list, int, int]#3, [int, int]#2, [list]#1, [int, int, int, int]#4, None, [int]#1]#8 | p[11]=[[str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, s
-  parsed: 40 itineraries; cheapest: [440, 535, 551, 619]
-     440 ['Ethiopian'] [('IST', 'ADD', 'Boeing 737MAX 8 Passenger', (0, 5), (5, 25)), ('ADD', 'COO', 'Boeing 737MAX 8 Passenger', (8, 30), (12, 5))]
-     535 ['Royal Air Maroc'] [('IST', 'CMN', 'Boeing 737MAX 8 Passenger', (18, 0), (20, 0)), ('CMN', 'COO', 'Boeing 737MAX 8 Passenger', (21, 45), (3, 15))]
-     551 ['Air France'] [('IST', 'CDG', 'Airbus A220-300 Passenger', (7, 15), (9, 0)), ('CDG', 'COO', 'Boeing 777', (14, 40), (21, 20))]
+== RT IST 14d nonstop country=BE
+  0 combos in 0.3s
 
-== RT BRU none, EUR off
-  insights p[5][:6]: None
-  shape: p[0]=[None, [list, NoneType, NoneType, NoneType, NoneType, list]#6, 0, 'RXTDaoLuF5Gdj8oPlMjm', 'HcfM0IQMo_xMAW9qqwBG']#5 | p[1]=[[list, list]#2, [list, list]#2]#2 | p[7]=[None, [list, list]#2, [list]#1, None, [list]#1, [int, int, int, int]#4, None, [int]#1]#8
-  parsed: 0 itineraries; cheapest: []
+== RT DSS 14d nonstop country=None
+  0 combos in 0.2s
 
-== RT CDG none (control again)
-  insights p[5][:6]: [3, [None, 765], [None, 660], [None, -106], [None, 590], [None, 950]]
-  shape: p[0]=[None, [list, NoneType, NoneType, NoneType, NoneType, list]#6, 0, 'R3TDavHcJeHQr8oP7-jr', 'HcfM0IQMo_xMAW9rGwBG']#5 | p[1]=[[list, list]#2, [list, list]#2]#2 | p[3]=[[list, list, list, list, list, list, list, list, list, list, list, list, …]#17, 13, 0, 0, [int]#1]#5 | p[5]=[3, [NoneType, int]#2, [NoneType, int]#2, [NoneType, int]#2, [NoneType, int]#2, [NoneType, int]#2, 1, None, None, None, [list]#1, [list, NoneType, NoneType, Non | p[6]=[[list, NoneType, list]#3]#1 | p[7]=[[list, list]#2, [list, list]#2, [list, int, int]#3, [int, int]#2, [list]#1, [int, int, int, int]#4, None, [int]#1]#8 | p[11]=[[str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, str, str]#3, [str, s
-  text: LFW Gnassingbé Eyadéma International Airport , ACC Accra International Airport , BRU Brussels Airport 574 kg CO2e +26% emissions +26% emissions Price unavailable Business Class + Economy Departure Wed, Nov 4 574 kg CO2e +26% emissions +26% emissions Select flight Price unavailable 12:05 PM COO 9:15 AM +1 CDG Business Class + Economy Price unavailab
-  parsed: 17 itineraries; cheapest: [765, 881, 911, 967]
-     765 ['Air France'] [('COO', 'CDG', 'Boeing 777', (23, 50), (6, 25))]
-     881 ['Turkish Airlines'] [('COO', 'ABJ', 'Boeing 737MAX 8 Passenger', (23, 30), (23, 55)), ('ABJ', 'IST', 'Boeing 737MAX 8 Passenger', (1, 10), (11, 30)), ('IST', 'CDG', 'Airbus A321neo', (14, 30), (16, 15))]
-     911 ['Turkish Airlines'] [('COO', 'ABJ', 'Boeing 737MAX 8 Passenger', (23, 30), (23, 55)), ('ABJ', 'IST', 'Boeing 737MAX 8 Passenger', (1, 10), (11, 30)), ('IST', 'CDG', 'Airbus A321neo', (12, 45), (14, 30))]
+== RT DSS 14d nonstop country=BE
+  0 combos in 0.2s
+
+== RT ABJ 14d nonstop country=None
+  0 combos in 0.3s
+
+== RT ABJ 14d nonstop country=BE
+  0 combos in 0.2s
+
+== RT AMS 21d 1 stop AF/KL layover 120-360 country=None
+  0 combos in 0.3s
+
+== RT AMS 21d 1 stop AF/KL layover 120-360 country=BE
+  0 combos in 0.3s
+
+== RT CDG 21d nonstop (control) country=None
+  1 combos in 0.5s
+   OUT 765.0 EUR stops=0 [AF805 COO-CDG 04Nov 23:50-06:25 Boeing 777]
+   RET 765.0 EUR stops=0 [AF804 CDG-COO 25Nov 14:40-21:20 Boeing 777]
+
+== RT CDG 21d nonstop (control) country=BE
+  1 combos in 0.5s
+   OUT 765.0 EUR stops=0 [AF805 COO-CDG 04Nov 23:50-06:25 Boeing 777]
+   RET 765.0 EUR stops=0 [AF804 CDG-COO 25Nov 14:40-21:20 Boeing 777]
+
+== SearchDates BRU 21d nonstop, 10 departure dates
+  0 dates in 0.4s
