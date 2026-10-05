@@ -59,4 +59,5 @@ groups:
       - {code: ABJ, city: Abidjan}
       # Not tracked (checked October 2026):
       #   Accra, Douala - no direct flights shown; all change in Lome or Abidjan
-      #   Libreville, Malabo, Addis Ababa - Google shows no results to automated searches
+      #   Libreville, Malabo, Addis Ababa - Google shows no prices to automated searches
+      #     (re-checked with several request styles; works fine in a normal browser)

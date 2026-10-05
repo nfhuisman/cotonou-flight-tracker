@@ -29,8 +29,8 @@ the actual return fares. The "cheaper than usual" comparison is like-for-like, s
 affected.
 
 Not tracked (checked October 2026): Accra and Douala (no direct flights shown, all change
-in Lomé or Abidjan); Libreville, Malabo and Addis Ababa (Google shows no results to
-automated searches). Cotonou–Amsterdam is also not shown, hence the Paris construction.
+in Lomé or Abidjan); Libreville, Malabo and Addis Ababa (Google shows no prices to
+automated searches, even though they appear in a normal browser). Cotonou–Amsterdam is also not shown, hence the Paris construction.
 
 Searched dates sit on a fixed calendar grid (every 3 days, both directions), so the same
 dates are re-checked daily and every day of the week gets covered. That's about 430
