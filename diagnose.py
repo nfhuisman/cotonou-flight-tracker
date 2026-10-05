@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Quick live check of the tracker's search code on a few legs. Writes data/diagnostics.txt.
+"""Quick live check of the tracker's search code. Writes data/diagnostics.txt.
 
 Pushing a change to this file runs it once on GitHub (see .github/workflows/track.yml);
 it can also be started from the Actions tab with mode "diagnose".
 """
-# Check 11: what does Google show for the regional routes on a week of days?
 
 from __future__ import annotations
 
@@ -21,26 +20,24 @@ OUT = Path(__file__).resolve().parent / "data" / "diagnostics.txt"
 def main() -> None:
     lines = [f"Live check {dt.datetime.utcnow():%Y-%m-%d %H:%M} UTC"]
     settings, routes = tracker.load_config(tracker.HERE)
-    by_code = {r["code"]: r for r in routes}
+    origin = settings.get("origin", "COO")
     day = dt.date.today() + dt.timedelta(days=30)
-    import collections
-    for code in ("ACC", "LBV", "DLA", "SSG", "ADD", "IST", "CMN"):
+    done = set()
+    for route in routes:
+        if route["code"] in done:
+            continue
+        done.add(route["code"])
         for direction in ("out", "in"):
-            summary = []
-            for k in range(7):
-                d = day + dt.timedelta(days=k)
-                a, b = ("COO", code) if direction == "out" else (code, "COO")
-                try:
-                    its, _ = tracker.search_itineraries(a, b, d, settings, None)
-                    kinds = collections.Counter(
-                        tracker.classify(i)[0] + ("" if tracker.classify(i)[0] == "nonstop" else "@" + tracker.classify(i)[1])
-                        for i in its)
-                    cheapest_direct = min((i["price"] for i in its if tracker.classify(i)[0] in ("nonstop", "same-plane")), default=None)
-                    summary.append(f"{d:%a}: {len(its)} [{', '.join(f'{k_}x{v}' for k_, v in kinds.most_common(3))}] direct={cheapest_direct}")
-                except Exception as e:
-                    summary.append(f"{d:%a}: ERROR {e}")
-                time.sleep(1.5)
-            lines.append(f"{code} {direction}: " + " | ".join(summary))
+            d = day if direction == "out" else day + dt.timedelta(days=route["stay_days"])
+            t = time.time()
+            try:
+                best = tracker.fetch_google(origin, route, direction, d, settings)
+                lines.append(f"{route['code']} {direction} {d}: "
+                             f"{best and {k: best[k] for k in ('price', 'airline', 'kind', 'via')}}"
+                             f"  ({time.time() - t:.1f}s)")
+            except Exception:
+                lines.append(f"{route['code']} {direction} {d}: ERROR\n{traceback.format_exc(limit=4)}")
+            time.sleep(2)
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
