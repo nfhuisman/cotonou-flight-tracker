@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Diagnose why Google Flights searches fail. Writes data/diagnostics.txt."""
-# Run 4: which filter combination empties round-trip results; how flaky are responses?
+# Run 5: round-trip control (CDG) vs others; what does an empty response contain?
 
 from __future__ import annotations
 
@@ -73,15 +73,18 @@ def main() -> None:
         return create_query(flights=legs or legs_amd(dest), trip="round-trip", seat="economy",
                             passengers=Passengers(adults=1), language="en", currency="EUR", **kw)
 
-    variants = []
-    for dest in ("BRU", "IST", "DSS"):
-        variants += [(f"RT {dest} none", rt(dest)),
-                     (f"RT {dest} max_stops=1", rt(dest, max_stops=1)),
-                     (f"RT {dest} max_stops=1+hide", rt(dest, max_stops=1, hide_separate_and_self_transfer=True))]
-    variants += [("RT AMS via CDG 120-360", rt("AMS", legs=legs_amd("AMS", ["CDG"], 120, 360), max_stops=1)),
-                 ("RT AMS via CDG 120-360 +hide", rt("AMS", legs=legs_amd("AMS", ["CDG"], 120, 360), max_stops=1, hide_separate_and_self_transfer=True)),
-                 ("RT AMS none", rt("AMS"))]
-    variants = variants + [(l + " (repeat)", q_) for l, q_ in variants]
+    def ow(o, dst, date, **kw):
+        return create_query(flights=[FlightQuery(date=date.isoformat(), from_airport=o, to_airport=dst)],
+                            trip="one-way", seat="economy", passengers=Passengers(adults=1),
+                            language="en", currency="EUR", **kw)
+
+    variants = [("RT CDG none (control)", rt("CDG")),
+                ("RT BRU none", rt("BRU")),
+                ("OW BRU->COO on return date", ow("BRU", "COO", d2)),
+                ("OW IST->COO on return date", ow("IST", "COO", d2)),
+                ("RT BRU none, EUR off", create_query(flights=legs_amd("BRU"), trip="round-trip", seat="economy",
+                                                     passengers=Passengers(adults=1), language="en", currency="")),
+                ("RT CDG none (control again)", rt("CDG"))]
 
     for label, query in variants:
         log(f"\n== {label}")
@@ -93,6 +96,13 @@ def main() -> None:
                 log("  no ds:1 payload; title:", re.search(r"<title>(.*?)</title>", html).group(1) if "<title>" in html else None)
                 continue
             log("  insights p[5][:6]:", p[5][:6] if p[5] else None)
+            log("  shape:", " | ".join(f"p[{i}]={shape(p[i], maxd=2)[:160]}" for i in range(min(len(p), 12)) if p[i] is not None))
+            txt = re.sub(r"<script.*?</script>|<style.*?</style>", " ", html, flags=re.S | re.I)
+            txt = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", txt))
+            for kw_ in ("No results", "no flights", "Try changing", "isn't available", "unavailable"):
+                i_ = txt.find(kw_)
+                if i_ >= 0:
+                    log("  text:", txt[max(0, i_ - 150): i_ + 200])
             try:
                 from fast_flights.parser import parse_js
                 m = re.search(r'<script[^>]*class="ds:1"[^>]*>(.*?)</script>', html, re.S)
