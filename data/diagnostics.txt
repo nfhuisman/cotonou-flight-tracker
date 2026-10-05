@@ -1,0 +1,19 @@
+Diagnostics 2026-10-05T09:49:56 UTC
+fast-flights: 3.1.0
+primp: 2.0.1
+protobuf: 7.36.2
+selectolax: 1.0.0
+IMPORT FAILED:
+Traceback (most recent call last):
+  File "/home/runner/work/cotonou-flight-tracker/cotonou-flight-tracker/diagnose.py", line 44, in main
+    from fast_flights import FlightQuery, Passengers, create_query, get_flights
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/fast_flights/__init__.py", line 7, in <module>
+    from . import integrations
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/fast_flights/integrations/__init__.py", line 3, in <module>
+    from .base import DataSourceIntegration, FetchIntegration
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/fast_flights/integrations/base.py", line 7, in <module>
+    from ..querying import Query
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/fast_flights/querying.py", line 7, in <module>
+    from typing_extensions import override
+ModuleNotFoundError: No module named 'typing_extensions'
+
