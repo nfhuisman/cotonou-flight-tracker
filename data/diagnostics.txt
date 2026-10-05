@@ -1,19 +1,116 @@
-Diagnostics 2026-10-05T09:49:56 UTC
+Diagnostics 2026-10-05T09:50:32 UTC
 fast-flights: 3.1.0
 primp: 2.0.1
 protobuf: 7.36.2
 selectolax: 1.0.0
-IMPORT FAILED:
-Traceback (most recent call last):
-  File "/home/runner/work/cotonou-flight-tracker/cotonou-flight-tracker/diagnose.py", line 44, in main
-    from fast_flights import FlightQuery, Passengers, create_query, get_flights
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/fast_flights/__init__.py", line 7, in <module>
-    from . import integrations
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/fast_flights/integrations/__init__.py", line 3, in <module>
-    from .base import DataSourceIntegration, FetchIntegration
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/fast_flights/integrations/base.py", line 7, in <module>
-    from ..querying import Query
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/fast_flights/querying.py", line 7, in <module>
-    from typing_extensions import override
-ModuleNotFoundError: No module named 'typing_extensions'
 
+== get_flights: round-trip COO-BRU (tracker settings)
+  url: https://www.google.com/travel/flights/search?tfs=GhwSCjIwMjYtMTEtMDQoAWoFEgNDT09yBRIDQlJVGhwSCjIwMjYtMTEtMTgoAWoFEgNCUlVyBRIDQ09PQgEBSAGIAQGYAQE=&tfu=EgQIABABIgA&hl=en&curr=EUR
+  OK: 0 itineraries; prices: []
+
+== get_flights: one-way COO-CDG
+  url: https://www.google.com/travel/flights/search?tfs=GhwSCjIwMjYtMTEtMDQoAWoFEgNDT09yBRIDQ0RHQgEBSAGIAQGYAQI=&tfu=EgQIABABIgA&hl=en&curr=EUR
+  OK: 4 itineraries; prices: [533, 610, 693, 966]
+  first: ['Air France'] [('COO', 'CDG', 'Boeing 777')]
+
+== get_flights: round-trip COO-IST, no lang/currency
+  url: https://www.google.com/travel/flights/search?tfs=GhwSCjIwMjYtMTEtMDQoAWoFEgNDT09yBRIDSVNUGhwSCjIwMjYtMTEtMTgoAWoFEgNJU1RyBRIDQ09PQgEBSAGIAQGYAQE=&tfu=EgQIABABIgA&hl=&curr=
+  OK: 0 itineraries; prices: []
+
+== alt fetch impersonate=chrome_145 cookies=none
+  status: 200 final url: https://www.google.com/travel/flights?tfs=GhwSCjIwMjYtMTEtMDQoAWoFEgNDT09yBRIDQlJVGhwSCjIwMjYtMTEtMTgoAWoFEgNCUlVyBRIDQ09PQgEBSAGIAQGYAQE%3D&hl=en&tfu
+  PARSE OK: 0 itineraries; cheapest: None
+
+== alt fetch impersonate=chrome_145 cookies=consent
+  status: 200 final url: https://www.google.com/travel/flights?tfs=GhwSCjIwMjYtMTEtMDQoAWoFEgNDT09yBRIDQlJVGhwSCjIwMjYtMTEtMTgoAWoFEgNCUlVyBRIDQ09PQgEBSAGIAQGYAQE%3D&hl=en&tfu
+  PARSE OK: 0 itineraries; cheapest: None
+
+== alt fetch impersonate=chrome_131 cookies=none
+  FAILED:
+Traceback (most recent call last):
+  File "/home/runner/work/cotonou-flight-tracker/cotonou-flight-tracker/diagnose.py", line 101, in main
+    c = Client(**kw)
+        ^^^^^^^^^^^^
+primp.BuilderError: Invalid impersonate: "chrome_131"
+
+
+== alt fetch impersonate=chrome_131 cookies=consent
+  FAILED:
+Traceback (most recent call last):
+  File "/home/runner/work/cotonou-flight-tracker/cotonou-flight-tracker/diagnose.py", line 101, in main
+    c = Client(**kw)
+        ^^^^^^^^^^^^
+primp.BuilderError: Invalid impersonate: "chrome_131"
+
+
+== alt fetch impersonate=chrome_120 cookies=none
+  FAILED:
+Traceback (most recent call last):
+  File "/home/runner/work/cotonou-flight-tracker/cotonou-flight-tracker/diagnose.py", line 101, in main
+    c = Client(**kw)
+        ^^^^^^^^^^^^
+primp.BuilderError: Invalid impersonate: "chrome_120"
+
+
+== alt fetch impersonate=chrome_120 cookies=consent
+  FAILED:
+Traceback (most recent call last):
+  File "/home/runner/work/cotonou-flight-tracker/cotonou-flight-tracker/diagnose.py", line 101, in main
+    c = Client(**kw)
+        ^^^^^^^^^^^^
+primp.BuilderError: Invalid impersonate: "chrome_120"
+
+
+== alt fetch impersonate=safari_18 cookies=none
+  FAILED:
+Traceback (most recent call last):
+  File "/home/runner/work/cotonou-flight-tracker/cotonou-flight-tracker/diagnose.py", line 101, in main
+    c = Client(**kw)
+        ^^^^^^^^^^^^
+primp.BuilderError: Invalid impersonate: "safari_18"
+
+
+== alt fetch impersonate=safari_18 cookies=consent
+  FAILED:
+Traceback (most recent call last):
+  File "/home/runner/work/cotonou-flight-tracker/cotonou-flight-tracker/diagnose.py", line 101, in main
+    c = Client(**kw)
+        ^^^^^^^^^^^^
+primp.BuilderError: Invalid impersonate: "safari_18"
+
+
+== alt fetch impersonate=firefox_133 cookies=none
+  FAILED:
+Traceback (most recent call last):
+  File "/home/runner/work/cotonou-flight-tracker/cotonou-flight-tracker/diagnose.py", line 101, in main
+    c = Client(**kw)
+        ^^^^^^^^^^^^
+primp.BuilderError: Invalid impersonate: "firefox_133"
+
+
+== alt fetch impersonate=firefox_133 cookies=consent
+  FAILED:
+Traceback (most recent call last):
+  File "/home/runner/work/cotonou-flight-tracker/cotonou-flight-tracker/diagnose.py", line 101, in main
+    c = Client(**kw)
+        ^^^^^^^^^^^^
+primp.BuilderError: Invalid impersonate: "firefox_133"
+
+
+== alt fetch impersonate=None cookies=none
+  status: 200 final url: https://www.google.com/travel/flights/unsupported?tfs=GhwSCjIwMjYtMTEtMDQoAWoFEgNDT09yBRIDQlJVGhwSCjIwMjYtMTEtMTgoAWoFEgNCUlVyBRIDQ09PQgEBSAGIAQGYAQE%
+  parse failed: AttributeError: 'NoneType' object has no attribute 'text'
+  length: 1203978
+  title: Google Flights
+  has 'ds:1' script: False
+  mentions consent: False | unsupported: True | captcha/unusual traffic: True
+  visible text start: Google Flights Skip to main content Accessibility feedback Change appearance Sign in Explore Flights Hotels Vacation rentals Explore Flights Hotels Vacation rentals Flight Deals Tracked flight prices Tracked hotel prices Change language Change currency Change location Feedback Help Time for an upgrade Looks like your browser needs a boost. To get the best experience, upgrade to a recent version of Chrome, Firefox, Safari, or Microsoft Edge. You can also choose to proceed anyway, but some features may look different or not work as expected. Proceed anyway Google apps Main menu
+
+== alt fetch impersonate=None cookies=consent
+  status: 200 final url: https://www.google.com/travel/flights/unsupported?tfs=GhwSCjIwMjYtMTEtMDQoAWoFEgNDT09yBRIDQlJVGhwSCjIwMjYtMTEtMTgoAWoFEgNCUlVyBRIDQ09PQgEBSAGIAQGYAQE%
+  parse failed: AttributeError: 'NoneType' object has no attribute 'text'
+  length: 1215207
+  title: Google Flights
+  has 'ds:1' script: False
+  mentions consent: False | unsupported: True | captcha/unusual traffic: True
+  visible text start: Google Flights Skip to main content Accessibility feedback Change appearance Sign in Explore Flights Hotels Vacation rentals Explore Flights Hotels Vacation rentals Flight Deals Tracked flight prices Tracked hotel prices Change language Change currency Change location Feedback Help Time for an upgrade Looks like your browser needs a boost. To get the best experience, upgrade to a recent version of Chrome, Firefox, Safari, or Microsoft Edge. You can also choose to proceed anyway, but some features may look different or not work as expected. Proceed anyway Google apps Main menu
