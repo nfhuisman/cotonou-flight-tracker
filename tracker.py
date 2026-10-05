@@ -65,6 +65,7 @@ def load_config(root: Path) -> tuple[dict, list[dict]]:
                     "max_layover": r.get("max_layover_minutes"),
                     "stay_days": int(stay),
                     "every_days": int(r.get("every_days", group["every_days"])),
+                    "flex_days": int(r.get("flex_days", group.get("flex_days", 0))),
                     "horizon_days": int(r.get("horizon_days", group["horizon_days"])),
                 })
     return settings, routes
@@ -75,23 +76,37 @@ GRID_EPOCH = dt.date(2026, 1, 1)
 
 def sample_dates(route: dict, today: dt.date) -> list[tuple[dt.date, dt.date]]:
     """Departure dates on a fixed calendar grid, so the same dates are checked every day."""
-    step = route["every_days"]
-    first = today + dt.timedelta(days=7)
-    d = first + dt.timedelta(days=(-(first - GRID_EPOCH).days) % step)
-    end = today + dt.timedelta(days=route["horizon_days"])
+    days = grid(route["every_days"], today + dt.timedelta(days=7),
+                today + dt.timedelta(days=route["horizon_days"]))
+    return [(d, d + dt.timedelta(days=route["stay_days"])) for d in days]
+
+
+def grid(step: int, start: dt.date, end: dt.date) -> list[dt.date]:
+    d = start + dt.timedelta(days=(-(start - GRID_EPOCH).days) % step)
     out = []
     while d <= end:
-        out.append((d, d + dt.timedelta(days=route["stay_days"])))
+        out.append(d)
         d += dt.timedelta(days=step)
     return out
 
 
 def leg_jobs(routes: list[dict], today: dt.date) -> list[tuple[dict, str, dt.date]]:
-    """One-way searches needed today: (route, 'out'|'in', date), each only once."""
+    """One-way searches needed today: (route, 'out'|'in', date), each only once.
+
+    Outbound and return dates sit on the same fixed calendar grid; trips are
+    formed afterwards by pairing an outbound date with the cheapest return
+    within flex_days of the wanted trip length.
+    """
     seen, jobs = set(), []
     for route in routes:
-        for d, r in sample_dates(route, today):
-            for direction, day in (("out", d), ("in", r)):
+        outs = [d for d, _ in sample_dates(route, today)]
+        if not outs:
+            continue
+        lo = outs[0] + dt.timedelta(days=route["stay_days"] - route["flex_days"])
+        hi = outs[-1] + dt.timedelta(days=route["stay_days"] + route["flex_days"])
+        ins = grid(route["every_days"], lo, hi)
+        for direction, days in (("out", outs), ("in", ins)):
+            for day in days:
                 key = (route["code"], direction, day)
                 if key not in seen:
                     seen.add(key)
@@ -333,29 +348,34 @@ def leg_label(kind: str, via: str) -> str:
 
 
 def trips_from_legs(legs: list[dict], routes: list[dict], origin: str) -> list[dict]:
-    """Pair each day's outbound and return legs into trips for every route/stay."""
-    idx = {(r["checked"], r["route"], r["dir"], r["date"]): r for r in legs}
+    """Pair each day's outbound legs with the cheapest return leg in the wanted window."""
     outs_by: dict[tuple[str, str], list[dict]] = {}
+    ins_by: dict[tuple[str, str], list[dict]] = {}
     for r in legs:
-        if r["dir"] == "out":
-            outs_by.setdefault((r["checked"], r["route"]), []).append(r)
+        (outs_by if r["dir"] == "out" else ins_by).setdefault((r["checked"], r["route"]), []).append(r)
     trips = []
     for route in routes:
+        flex = route["flex_days"]
         for (checked, code), outs in outs_by.items():
             if code != route["code"]:
                 continue
+            ins = ins_by.get((checked, code), [])
             for o in outs:
-                ret = (dt.date.fromisoformat(o["date"]) + dt.timedelta(days=route["stay_days"])).isoformat()
-                i = idx.get((checked, route["code"], "in", ret))
-                if not i:
+                target = dt.date.fromisoformat(o["date"]) + dt.timedelta(days=route["stay_days"])
+                lo = (target - dt.timedelta(days=flex)).isoformat()
+                hi = (target + dt.timedelta(days=flex)).isoformat()
+                cands = [i for i in ins if lo <= i["date"] <= hi]
+                if not cands:
                     continue
-                lo, li = leg_label(o["kind"], o["via"]), leg_label(i["kind"], i["via"])
+                i = min(cands, key=lambda x: (x["price"], abs((dt.date.fromisoformat(x["date"]) - target).days)))
+                ret = i["date"]
+                lo_, li_ = leg_label(o["kind"], o["via"]), leg_label(i["kind"], i["via"])
                 trips.append({
                     "checked": checked, "route": route["id"], "depart": o["date"], "return": ret,
                     "price": o["price"] + i["price"], "out_price": o["price"], "in_price": i["price"],
                     "currency": o["currency"],
                     "airline": o["airline"] if o["airline"] == i["airline"] else f'{o["airline"]} / {i["airline"]}',
-                    "kind": lo if lo == li else f"{lo} out, {li} back",
+                    "kind": lo_ if lo_ == li_ else f"{lo_} out, {li_} back",
                     "via": "",
                     "link": trip_link(origin, route["code"], o["date"], ret, o["currency"]),
                 })

@@ -8,18 +8,33 @@ A dashboard with price charts is published on GitHub Pages.
 
 Set in [`routes.yaml`](routes.yaml); edit that file to add or remove destinations.
 
-- **Home visits**: Brussels (nonstop or same-plane stop) and Amsterdam (via Paris CDG with a
-  change of 2–6 hours), each for 3- and 4-week trips, up to 5 months ahead.
-- **Holiday ideas**: Istanbul, Casablanca, Addis Ababa, Dakar, Abidjan, Accra,
-  Libreville, Douala, Malabo. Two-week trips, up to 4 months ahead, nonstop or
-  same-plane stop only.
+- **Home visits** (3- and 4-week trips, up to 5 months ahead)
+  - **Brussels**: nonstop, or a stop on the same plane (Brussels Airlines via Accra).
+  - **Amsterdam**: the nonstop to Paris CDG plus a separate Paris–Amsterdam flight that
+    leaves at least 2 hours (at most 6) after landing, and the same on the way back.
+- **Holiday ideas** (2-week trips, up to 3 months ahead): Istanbul, Casablanca, Dakar,
+  Abidjan. Nonstop or same-plane stop only.
 
-Departure dates sit on a fixed calendar grid (every 4 days for home visits, every 6 for
-holidays), so the same dates are re-checked daily and, over a few weeks, every day of the
-week is covered. That's about 315 searches per daily run.
+A stop counts as "same plane" only when the flight continues under the same flight number.
 
-A "same-plane stop" is a best guess: one airline, same aircraft type, stop under
-2.5 hours. Check the itinerary before booking.
+### How trips are priced
+
+Google Flights only shows round-trip prices to automated searches for a few very popular
+routes (from Cotonou: just Paris), but one-way prices for most routes. So the tracker
+searches one-way fares in each direction and pairs them into trips: a departure date plus
+the cheapest return within 2 days of the wanted trip length. **A trip's price is the price
+of two one-way tickets.** A return ticket can be cheaper, especially with Air France or
+Brussels Airlines; every alert and dashboard entry links to Google Flights so you can check
+the actual return fares. The "cheaper than usual" comparison is like-for-like, so it is not
+affected.
+
+Not tracked (checked October 2026): Accra and Douala (no direct flights shown, all change
+in Lomé or Abidjan); Libreville, Malabo and Addis Ababa (Google shows no results to
+automated searches). Cotonou–Amsterdam is also not shown, hence the Paris construction.
+
+Searched dates sit on a fixed calendar grid (every 3 days, both directions), so the same
+dates are re-checked daily and every day of the week gets covered. That's about 430
+searches per daily run (~35 minutes).
 
 ## When you get a message
 
@@ -42,7 +57,7 @@ A "same-plane stop" is a best guess: one airline, same aircraft type, stop under
    branch**, branch **main**, folder **/docs**, Save.
 4. **Test.** *Actions → Track flight prices → Run workflow*, choose **test-telegram**.
    You should get a Telegram message within a minute. Run it again with **track** to do
-   the first real price check (about 15–25 minutes).
+   the first real price check (about 35 minutes).
 
 After that it runs by itself every day at 06:17 Cotonou time. The dashboard lives at
 `https://<your-username>.github.io/cotonou-flight-tracker/`.
@@ -61,13 +76,14 @@ After that it runs by itself every day at 06:17 Cotonou time. The dashboard live
 | `routes.yaml` | Routes and alert settings |
 | `tracker.py` | Searches, history, alerts, dashboard |
 | `dashboard_template.html` | Dashboard layout |
-| `data/prices.csv` | Every fare found, one row per route, date and day checked |
+| `data/legs.csv` | Every one-way fare found, one row per route, direction, date and day checked |
 | `data/runs.csv` | How each daily run went |
 | `docs/index.html` | The generated dashboard |
 | `.github/workflows/track.yml` | The daily schedule |
 
 `python tracker.py --simulate 40` fakes 40 days of prices into `_sim/` to try changes
-without internet access.
+without internet access. `diagnose.py` runs a few live searches on GitHub and writes
+`data/diagnostics.txt` (Actions → Run workflow → diagnose).
 
 Prices come from Google Flights via the open-source
 [fast-flights](https://github.com/AWeirdDev/flights) library, which reads the public

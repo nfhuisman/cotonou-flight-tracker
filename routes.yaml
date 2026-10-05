@@ -8,10 +8,12 @@
 # return ticket can be cheaper, especially with Air France or Brussels Airlines.
 #
 #   stay_days      trip length in days; a list tracks several trip lengths
-#   every_days     spacing of the departure dates that are checked. The dates sit
-#                  on a fixed calendar grid, so the same dates are re-checked every
-#                  day (needed to see their price move). Use a number that is not a
-#                  multiple of 7, so the dates rotate through every day of the week.
+#   every_days     spacing of the dates that are checked (outbound and return). The
+#                  dates sit on a fixed calendar grid, so the same dates are re-checked
+#                  every day (needed to see their price move). Use a number that is not
+#                  a multiple of 7, so the dates rotate through every day of the week.
+#   flex_days      a trip may come back this many days earlier or later than stay_days
+#                  (many routes only fly on some weekdays)
 #   horizon_days   how far ahead to look (150 ≈ 5 months)
 #   allow_change   false = only nonstop, or one stop where it's likely the same
 #                  plane (same airline + aircraft type, short stop)
@@ -33,7 +35,8 @@ settings:
 groups:
   - name: Home visits
     stay_days: [21, 28]
-    every_days: 4
+    every_days: 3
+    flex_days: 2
     horizon_days: 150
     routes:
       - {code: BRU, city: Brussels}
@@ -46,15 +49,14 @@ groups:
 
   - name: Holiday ideas (direct)
     stay_days: 14
-    every_days: 8
-    horizon_days: 120
+    every_days: 3
+    flex_days: 2
+    horizon_days: 90
     routes:
       - {code: IST, city: Istanbul}
       - {code: CMN, city: Casablanca}
-      - {code: ADD, city: Addis Ababa}
       - {code: DSS, city: Dakar}
       - {code: ABJ, city: Abidjan}
-      - {code: ACC, city: Accra}
-      - {code: LBV, city: Libreville}
-      - {code: DLA, city: Douala}
-      - {code: SSG, city: Malabo}
+      # Not tracked (checked October 2026):
+      #   Accra, Douala - no direct flights shown; all change in Lome or Abidjan
+      #   Libreville, Malabo, Addis Ababa - Google shows no results to automated searches
