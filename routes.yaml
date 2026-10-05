@@ -1,7 +1,11 @@
 # Cotonou flight price tracker — what to watch
 #
-# Edit this file to add or remove destinations. Every route is searched as a
-# round trip from Cotonou (COO) for one adult in economy, in EUR.
+# Edit this file to add or remove destinations. Prices are for one adult in economy, in EUR.
+#
+# Google only shows round-trip prices for a few very popular routes, so the
+# tracker searches one-way fares (Cotonou -> destination, and back) and adds
+# them up. A trip's price is therefore the price of two one-way tickets; a
+# return ticket can be cheaper, especially with Air France or Brussels Airlines.
 #
 #   stay_days      trip length in days; a list tracks several trip lengths
 #   every_days     spacing of the departure dates that are checked. The dates sit
@@ -41,7 +45,7 @@ groups:
 
   - name: Holiday ideas (direct)
     stay_days: 14
-    every_days: 6
+    every_days: 8
     horizon_days: 120
     routes:
       - {code: IST, city: Istanbul}

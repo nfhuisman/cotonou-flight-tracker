@@ -2,10 +2,13 @@
 """Cotonou flight price tracker.
 
 Once a day (via GitHub Actions) this script:
-  1. searches Google Flights for every route/date in routes.yaml,
-  2. appends the cheapest suitable fare per search to data/prices.csv,
-  3. compares today's fares with the price history and sends a Telegram
-     message when something is clearly cheaper than usual,
+  1. searches Google Flights for one-way fares, Cotonou -> destination and back,
+     on the dates set in routes.yaml (Google's page only carries round-trip
+     results for a few very popular routes, but one-way results for all),
+  2. appends the cheapest suitable fare per search to data/legs.csv,
+  3. pairs outbound and return legs into trips (e.g. 3 and 4 weeks), compares
+     today's trip prices with their history and sends a Telegram message when
+     something is clearly cheaper than usual,
   4. rebuilds the dashboard in docs/index.html (served by GitHub Pages).
 
 Run locally:
@@ -32,10 +35,8 @@ from pathlib import Path
 import yaml
 
 HERE = Path(__file__).resolve().parent
-FIELDS = ["checked", "route", "depart", "return", "price", "currency",
-          "airline", "kind", "via", "duration_min", "link"]
-KIND_LABEL = {"nonstop": "nonstop", "same-plane": "1 stop, same plane",
-              "change": "1 change of plane"}
+LEG_FIELDS = ["checked", "route", "dir", "date", "price", "currency",
+              "airline", "kind", "via", "duration_min", "link"]
 
 
 # --------------------------------------------------------------------------
@@ -84,6 +85,20 @@ def sample_dates(route: dict, today: dt.date) -> list[tuple[dt.date, dt.date]]:
     return out
 
 
+def leg_jobs(routes: list[dict], today: dt.date) -> list[tuple[dict, str, dt.date]]:
+    """One-way searches needed today: (route, 'out'|'in', date), each only once."""
+    seen, jobs = set(), []
+    for route in routes:
+        for d, r in sample_dates(route, today):
+            for direction, day in (("out", d), ("in", r)):
+                key = (route["code"], direction, day)
+                if key not in seen:
+                    seen.add(key)
+                    jobs.append((route, direction, day))
+    jobs.sort(key=lambda j: (j[0]["code"], j[1] == "in", j[2]))
+    return jobs
+
+
 # --------------------------------------------------------------------------
 # Fetching (Google Flights via the fast-flights library)
 # --------------------------------------------------------------------------
@@ -126,9 +141,9 @@ def suitable(route: dict, kind: str, via: str, layover: int | None) -> bool:
     return True
 
 
-def fetch_google(origin: str, route: dict, depart: dt.date, ret: dt.date,
+def fetch_google(origin: str, route: dict, direction: str, day: dt.date,
                  settings: dict) -> dict | None:
-    """Cheapest suitable round-trip fare for one route/date, or None."""
+    """Cheapest suitable one-way fare for one leg, or None if there is none."""
     from fast_flights import (FlightQuery, FlightsNotFound, Passengers,
                               create_query, get_flights)
 
@@ -137,28 +152,31 @@ def fetch_google(origin: str, route: dict, depart: dt.date, ret: dt.date,
         leg_filters = {"connecting_airports": route["via"],
                        "min_layover_minutes": route["min_layover"],
                        "max_layover_minutes": route["max_layover"]}
+    a, b = (origin, route["code"]) if direction == "out" else (route["code"], origin)
     q = create_query(
-        flights=[
-            FlightQuery(date=depart.isoformat(), from_airport=origin,
-                        to_airport=route["code"], **leg_filters),
-            FlightQuery(date=ret.isoformat(), from_airport=route["code"],
-                        to_airport=origin, **leg_filters),
-        ],
-        trip="round-trip",
+        flights=[FlightQuery(date=day.isoformat(), from_airport=a, to_airport=b, **leg_filters)],
+        trip="one-way",
         seat="economy",
         passengers=Passengers(adults=int(settings.get("adults", 1))),
         language="en",
         currency=settings.get("currency", "EUR"),
         max_stops=1,
-        hide_separate_and_self_transfer=True,
     )
-    try:
-        results = get_flights(q)
-    except FlightsNotFound:
-        return None
+    results = None
+    for attempt in range(2):  # Google occasionally answers with an error page; retry once
+        try:
+            results = get_flights(q)
+            break
+        except FlightsNotFound:
+            if attempt == 1:
+                return None
+        except Exception:
+            if attempt == 1:
+                raise
+        time.sleep(4)
 
     best = None
-    for itin in results:
+    for itin in results or []:
         if not itin.price:
             continue
         kind, via, layover = classify(itin)
@@ -177,11 +195,17 @@ def fetch_google(origin: str, route: dict, depart: dt.date, ret: dt.date,
     return best
 
 
+def trip_link(origin: str, code: str, depart: str, ret: str, cur: str) -> str:
+    text = f"Flights from {origin} to {code} on {depart} through {ret}"
+    return ("https://www.google.com/travel/flights?q=" + urllib.parse.quote(text)
+            + f"&curr={cur}&hl=en")
+
+
 # --------------------------------------------------------------------------
 # Storage
 # --------------------------------------------------------------------------
 
-def read_prices(path: Path) -> list[dict]:
+def read_legs(path: Path) -> list[dict]:
     if not path.exists():
         return []
     with path.open(newline="", encoding="utf-8") as f:
@@ -191,15 +215,15 @@ def read_prices(path: Path) -> list[dict]:
     return rows
 
 
-def append_prices(path: Path, rows: list[dict]) -> None:
+def append_legs(path: Path, rows: list[dict]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     new = not path.exists()
     with path.open("a", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=FIELDS)
+        w = csv.DictWriter(f, fieldnames=LEG_FIELDS)
         if new:
             w.writeheader()
         for r in rows:
-            w.writerow({k: r.get(k, "") for k in FIELDS})
+            w.writerow({k: r.get(k, "") for k in LEG_FIELDS})
 
 
 def append_run(path: Path, checked: str, ok: int, failed: int, empty: int) -> None:
@@ -214,6 +238,41 @@ def append_run(path: Path, checked: str, ok: int, failed: int, empty: int) -> No
 # --------------------------------------------------------------------------
 # Analysis
 # --------------------------------------------------------------------------
+
+def leg_label(kind: str, via: str) -> str:
+    return {"nonstop": "nonstop", "same-plane": f"stop in {via}, same plane",
+            "change": f"change in {via}"}.get(kind, kind)
+
+
+def trips_from_legs(legs: list[dict], routes: list[dict], origin: str) -> list[dict]:
+    """Pair each day's outbound and return legs into trips for every route/stay."""
+    idx = {(r["checked"], r["route"], r["dir"], r["date"]): r for r in legs}
+    outs_by: dict[tuple[str, str], list[dict]] = {}
+    for r in legs:
+        if r["dir"] == "out":
+            outs_by.setdefault((r["checked"], r["route"]), []).append(r)
+    trips = []
+    for route in routes:
+        for (checked, code), outs in outs_by.items():
+            if code != route["code"]:
+                continue
+            for o in outs:
+                ret = (dt.date.fromisoformat(o["date"]) + dt.timedelta(days=route["stay_days"])).isoformat()
+                i = idx.get((checked, route["code"], "in", ret))
+                if not i:
+                    continue
+                lo, li = leg_label(o["kind"], o["via"]), leg_label(i["kind"], i["via"])
+                trips.append({
+                    "checked": checked, "route": route["id"], "depart": o["date"], "return": ret,
+                    "price": o["price"] + i["price"], "out_price": o["price"], "in_price": i["price"],
+                    "currency": o["currency"],
+                    "airline": o["airline"] if o["airline"] == i["airline"] else f'{o["airline"]} / {i["airline"]}',
+                    "kind": lo if lo == li else f"{lo} out, {li} back",
+                    "via": "",
+                    "link": trip_link(origin, route["code"], o["date"], ret, o["currency"]),
+                })
+    return trips
+
 
 def analyse(rows: list[dict], routes: list[dict], settings: dict, today: str) -> dict:
     """Per-route summary + list of deals found in today's data."""
@@ -346,24 +405,23 @@ def money(cur: str, v) -> str:
 
 
 def deal_message(deals: list[dict], cur: str, dashboard: str) -> str:
-    parts = [f"✈️ <b>{len(deals)} cheaper-than-usual fare{'s' if len(deals) > 1 else ''} from Cotonou</b>"]
+    parts = [f"✈️ <b>{len(deals)} cheaper-than-usual trip{'s' if len(deals) > 1 else ''} from Cotonou</b>"]
     for d in deals:
         r, route = d["row"], d["route"]
         pct = round((1 - r["price"] / d["usual"]) * 100)
-        via = f' via {r["via"]}' if r.get("via") else ""
         parts.append(
-            f'<b>Cotonou → {route["city"]}</b> ({weeks(route["stay_days"])}): {money(cur, r["price"])} return\n'
-            f'{fmt_date(r["depart"])} → {fmt_date(r["return"])} · {r["airline"]}, '
-            f'{KIND_LABEL.get(r["kind"], r["kind"])}{via}\n'
+            f'<b>Cotonou ⇄ {route["city"]}</b> ({weeks(route["stay_days"])}): {money(cur, r["price"])}\n'
+            f'{fmt_date(r["depart"])} → {fmt_date(r["return"])} · {r["airline"]}, {r["kind"]}\n'
+            f'One-way tickets: {money(cur, r["out_price"])} out + {money(cur, r["in_price"])} back\n'
             f'{pct}% below {d["basis"]} ({money(cur, d["usual"])})\n'
-            f'<a href="{r["link"]}">Open in Google Flights</a>')
+            f'<a href="{r["link"]}">Check return fares in Google Flights</a>')
     if dashboard:
         parts.append(f'<a href="{dashboard}">Dashboard</a>')
     return "\n\n".join(parts)
 
 
 def weekly_message(summary: list[dict], cur: str, dashboard: str) -> str:
-    lines = ["📊 <b>Weekly overview: cheapest return fares from Cotonou</b>"]
+    lines = ["📊 <b>Weekly overview: cheapest trips from Cotonou</b> (two one-way tickets)"]
     for s in summary:
         b = s["best"]
         if not b:
@@ -374,7 +432,7 @@ def weekly_message(summary: list[dict], cur: str, dashboard: str) -> str:
             diff = round((b["price"] / s["median30"] - 1) * 100)
             vs = f' ({diff:+d}% vs usual)'
         lines.append(f'{s["city"]} ({weeks(s["stay"])}): <b>{money(cur, b["price"])}</b>{vs}, '
-                     f'{fmt_date(b["depart"])}, {b["airline"]}')
+                     f'{fmt_date(b["depart"])} → {fmt_date(b["return"])}, {b["airline"]}')
     if dashboard:
         lines.append(f'\n<a href="{dashboard}">Open the dashboard</a>')
     return "\n".join(lines)
@@ -425,28 +483,27 @@ def run(root: Path, today: dt.date, fetch, pause=(1.5, 4.0), notify=True,
 
     new_rows, ok, empty, failed = [], 0, 0, 0
     errors: list[str] = []
-    jobs = [(route, d, r) for route in routes for d, r in sample_dates(route, today)]
-    for i, (route, d, r) in enumerate(jobs, 1):
+    jobs = leg_jobs(routes, today)
+    for i, (route, direction, day) in enumerate(jobs, 1):
+        tag = f"[{i}/{len(jobs)}] {route['code']} {direction} {day}"
         try:
-            best = fetch(origin, route, d, r, settings)
+            best = fetch(origin, route, direction, day, settings)
         except Exception as e:  # keep going; one bad search shouldn't stop the run
             failed += 1
             if len(errors) < 5:
                 import traceback
-                errors.append(f"{route['id']} {d}:\n{traceback.format_exc(limit=5)}")
-            log(f"[{i}/{len(jobs)}] {route['id']} {d}: ERROR {type(e).__name__}: {e}")
+                errors.append(f"{tag}:\n{traceback.format_exc(limit=5)}")
+            log(f"{tag}: ERROR {type(e).__name__}: {e}")
             best = None
         else:
             if best:
                 ok += 1
-                new_rows.append({"checked": tday, "route": route["id"],
-                                 "depart": d.isoformat(), "return": r.isoformat(),
-                                 "currency": cur, **best})
-                log(f"[{i}/{len(jobs)}] {route['id']} {d}: {cur} {best['price']} "
-                    f"{best['airline']} ({best['kind']})")
+                new_rows.append({"checked": tday, "route": route["code"], "dir": direction,
+                                 "date": day.isoformat(), "currency": cur, **best})
+                log(f"{tag}: {cur} {best['price']} {best['airline']} ({best['kind']})")
             else:
                 empty += 1
-                log(f"[{i}/{len(jobs)}] {route['id']} {d}: no suitable flight")
+                log(f"{tag}: no suitable flight")
         if pause and i < len(jobs):
             time.sleep(random.uniform(*pause))
 
@@ -454,10 +511,10 @@ def run(root: Path, today: dt.date, fetch, pause=(1.5, 4.0), notify=True,
     data.mkdir(parents=True, exist_ok=True)
     (data / "last_errors.txt").write_text(
         f"{tday}: {failed} of {len(jobs)} searches failed\n\n" + "\n".join(errors))
-    append_prices(data / "prices.csv", new_rows)
+    append_legs(data / "legs.csv", new_rows)
     append_run(data / "runs.csv", tday, ok, failed, empty)
 
-    rows = read_prices(data / "prices.csv")
+    rows = trips_from_legs(read_legs(data / "legs.csv"), routes, origin)
     analysis = analyse(rows, routes, settings, tday)
 
     state_path = data / "alert_state.json"
@@ -496,9 +553,9 @@ AIR = {"BRU": "Brussels Airlines", "CDG": "Air France", "ORY": "Corsair",
 
 
 def make_sim_fetch(day_index: int, seed: int, crash_on: int | None = None):
-    def fetch(origin, route, d, r, settings):
-        rnd = random.Random(f"{seed}-{route['code']}-{d}-{day_index}")
-        base = BASE.get(route["code"], 500) * (1 + (route["stay_days"] - 14) / 100)
+    def fetch(origin, route, direction, d, settings):
+        rnd = random.Random(f"{seed}-{route['code']}-{direction}-{d}-{day_index}")
+        base = BASE.get(route["code"], 500) * 0.6
         season = 1.25 if d.month == 12 and d.day > 15 else 1.0
         noise = rnd.uniform(0.92, 1.1)
         promo = 0.7 if (day_index == crash_on and route["code"] in ("BRU", "IST")) else 1.0
@@ -508,7 +565,7 @@ def make_sim_fetch(day_index: int, seed: int, crash_on: int | None = None):
                 "kind": "change" if route["code"] == "AMS" else "nonstop",
                 "via": "CDG" if route["code"] == "AMS" else "",
                 "duration_min": 400,
-                "link": f"https://www.google.com/travel/flights?q=COO-{route['code']}-{d}"}
+                "link": f"https://www.google.com/travel/flights?q=COO-{route['code']}-{d}-{direction}"}
     return fetch
 
 
