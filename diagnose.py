@@ -4,7 +4,7 @@
 Pushing a change to this file runs it once on GitHub (see .github/workflows/track.yml);
 it can also be started from the Actions tab with mode "diagnose".
 """
-# Check 10: tracker searches incl. Amsterdam built from Paris + connection
+# Check 11: what does Google show for the regional routes on a week of days?
 
 from __future__ import annotations
 
@@ -23,19 +23,24 @@ def main() -> None:
     settings, routes = tracker.load_config(tracker.HERE)
     by_code = {r["code"]: r for r in routes}
     day = dt.date.today() + dt.timedelta(days=30)
-    sat = day + dt.timedelta(days=(5 - day.weekday()) % 7)
-    checks = [("BRU", "out", sat), ("BRU", "in", sat + dt.timedelta(days=21)),
-              ("AMS", "out", day), ("AMS", "in", day + dt.timedelta(days=28)),
-              ("AMS", "out", sat), ("IST", "out", day), ("CMN", "in", day), ("ACC", "out", day)]
-    for code, direction, d in checks:
-        t = time.time()
-        try:
-            best = tracker.fetch_google(settings.get("origin", "COO"), by_code[code], direction, d, settings)
-            lines.append(f"{code} {direction} {d}: {best and {k: best[k] for k in ('price', 'airline', 'kind', 'via')}}"
-                         f"  ({time.time() - t:.1f}s)")
-        except Exception:
-            lines.append(f"{code} {direction} {d}: ERROR\n{traceback.format_exc(limit=4)}")
-        time.sleep(2)
+    import collections
+    for code in ("ACC", "LBV", "DLA", "SSG", "ADD", "IST", "CMN"):
+        for direction in ("out", "in"):
+            summary = []
+            for k in range(7):
+                d = day + dt.timedelta(days=k)
+                a, b = ("COO", code) if direction == "out" else (code, "COO")
+                try:
+                    its, _ = tracker.search_itineraries(a, b, d, settings, None)
+                    kinds = collections.Counter(
+                        tracker.classify(i)[0] + ("" if tracker.classify(i)[0] == "nonstop" else "@" + tracker.classify(i)[1])
+                        for i in its)
+                    cheapest_direct = min((i["price"] for i in its if tracker.classify(i)[0] in ("nonstop", "same-plane")), default=None)
+                    summary.append(f"{d:%a}: {len(its)} [{', '.join(f'{k_}x{v}' for k_, v in kinds.most_common(3))}] direct={cheapest_direct}")
+                except Exception as e:
+                    summary.append(f"{d:%a}: ERROR {e}")
+                time.sleep(1.5)
+            lines.append(f"{code} {direction}: " + " | ".join(summary))
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
