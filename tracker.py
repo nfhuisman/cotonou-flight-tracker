@@ -103,26 +103,59 @@ def leg_jobs(routes: list[dict], today: dt.date) -> list[tuple[dict, str, dt.dat
 # Fetching (Google Flights via the fast-flights library)
 # --------------------------------------------------------------------------
 
-def _minutes(sd) -> int:
-    y, m, d = sd.date
-    h, mi = sd.time
-    return int(dt.datetime(y, m, d, h, mi).timestamp() // 60)
+def parse_itineraries(html: str) -> list[dict] | None:
+    """Itineraries from a Google Flights results page, with flight numbers.
+
+    Returns None when Google answered with an error page (worth a retry).
+    """
+    import re
+    m = re.search(r'<script[^>]*class="ds:1"[^>]*>(.*?)</script>', html, re.S)
+    if not m:
+        return None
+    js = m.group(1)
+    if "errorHasStatus: true" in js:
+        return None
+    payload = json.loads(js.split("data:", 1)[1].rsplit(",", 1)[0])
+    out = []
+    for section in payload[2:4]:
+        for row in (section[0] if section and section[0] else []):
+            try:
+                flight, fare = row[0], row[1]
+                price = fare[0][1] if fare and fare[0] and len(fare[0]) > 1 else None
+                segs = []
+                for sf in flight[2]:
+                    dep_t, arr_t = (sf[8] or []) + [0, 0], (sf[10] or []) + [0, 0]
+                    num = sf[22] or []
+                    segs.append({
+                        "from": sf[3], "to": sf[6], "plane": sf[17] or "",
+                        "carrier": num[0] if num else "", "number": str(num[1]) if len(num) > 1 else "",
+                        "dep": dt.datetime(*sf[20], dep_t[0] or 0, dep_t[1] or 0),
+                        "arr": dt.datetime(*sf[21], arr_t[0] or 0, arr_t[1] or 0),
+                        "minutes": sf[11] or 0,
+                    })
+                out.append({"price": price, "airlines": flight[1] or [], "segs": segs})
+            except (IndexError, TypeError, ValueError):
+                continue
+    return out
 
 
-def classify(itin) -> tuple[str, str, int | None]:
-    """Return (kind, via, layover_minutes). kind: nonstop | same-plane | change | other."""
-    segs = itin.flights
+def classify(itin: dict) -> tuple[str, str, int | None]:
+    """Return (kind, via, layover_minutes). kind: nonstop | same-plane | change | other.
+
+    A stop is "same-plane" only when the flight continues under the same flight
+    number (e.g. Turkish Airlines Cotonou-Abidjan-Istanbul).
+    """
+    segs = itin["segs"]
     if len(segs) == 1:
         return "nonstop", "", None
     if len(segs) == 2:
-        via = segs[0].to_airport.code
-        layover = _minutes(segs[1].departure) - _minutes(segs[0].arrival)
-        one_airline = len(set(itin.airlines or [])) == 1
-        same_type = bool(segs[0].plane_type) and segs[0].plane_type == segs[1].plane_type
-        if one_airline and same_type and 0 <= layover <= 150:
+        a, b = segs
+        via = a["to"]
+        layover = int((b["dep"] - a["arr"]).total_seconds() // 60)
+        if a["carrier"] and (a["carrier"], a["number"]) == (b["carrier"], b["number"]):
             return "same-plane", via, layover
         return "change", via, layover
-    return "other", "/".join(s.to_airport.code for s in segs[:-1]), None
+    return "other", "/".join(x["to"] for x in segs[:-1]), None
 
 
 def suitable(route: dict, kind: str, via: str, layover: int | None) -> bool:
@@ -144,8 +177,8 @@ def suitable(route: dict, kind: str, via: str, layover: int | None) -> bool:
 def fetch_google(origin: str, route: dict, direction: str, day: dt.date,
                  settings: dict) -> dict | None:
     """Cheapest suitable one-way fare for one leg, or None if there is none."""
-    from fast_flights import (FlightQuery, FlightsNotFound, Passengers,
-                              create_query, get_flights)
+    from fast_flights import FlightQuery, Passengers, create_query
+    from fast_flights.fetcher import fetch_flights_html
 
     leg_filters = {}
     if route["allow_change"]:
@@ -163,32 +196,30 @@ def fetch_google(origin: str, route: dict, direction: str, day: dt.date,
         max_stops=1,
     )
     results = None
-    for attempt in range(2):  # Google occasionally answers with an error page; retry once
+    for attempt in range(3):  # Google sometimes answers with an error page; retry
         try:
-            results = get_flights(q)
-            break
-        except FlightsNotFound:
-            if attempt == 1:
-                return None
+            results = parse_itineraries(fetch_flights_html(q))
         except Exception:
-            if attempt == 1:
+            if attempt == 2:
                 raise
-        time.sleep(4)
+        if results is not None:
+            break
+        time.sleep(3 + 3 * attempt)
 
     best = None
     for itin in results or []:
-        if not itin.price:
+        if not itin["price"]:
             continue
         kind, via, layover = classify(itin)
         if not suitable(route, kind, via, layover):
             continue
-        if best is None or itin.price < best["price"]:
+        if best is None or itin["price"] < best["price"]:
             best = {
-                "price": int(itin.price),
-                "airline": ", ".join(itin.airlines or []),
+                "price": int(itin["price"]),
+                "airline": ", ".join(itin["airlines"]),
                 "kind": kind,
                 "via": via,
-                "duration_min": sum(s.duration or 0 for s in itin.flights),
+                "duration_min": sum(x["minutes"] for x in itin["segs"]),
             }
     if best:
         best["link"] = q.url()
