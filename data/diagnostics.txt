@@ -1,45 +1,9 @@
-Diagnostics 2026-10-05T10:01:53 UTC
-flights (fli): 0.10.0
-
-== RT BRU 21d nonstop country=None
-  0 combos in 1.1s
-
-== RT BRU 21d nonstop country=BE
-  0 combos in 0.2s
-
-== RT IST 14d nonstop country=None
-  0 combos in 0.3s
-
-== RT IST 14d nonstop country=BE
-  0 combos in 0.3s
-
-== RT DSS 14d nonstop country=None
-  0 combos in 0.2s
-
-== RT DSS 14d nonstop country=BE
-  0 combos in 0.2s
-
-== RT ABJ 14d nonstop country=None
-  0 combos in 0.3s
-
-== RT ABJ 14d nonstop country=BE
-  0 combos in 0.2s
-
-== RT AMS 21d 1 stop AF/KL layover 120-360 country=None
-  0 combos in 0.3s
-
-== RT AMS 21d 1 stop AF/KL layover 120-360 country=BE
-  0 combos in 0.3s
-
-== RT CDG 21d nonstop (control) country=None
-  1 combos in 0.5s
-   OUT 765.0 EUR stops=0 [AF805 COO-CDG 04Nov 23:50-06:25 Boeing 777]
-   RET 765.0 EUR stops=0 [AF804 CDG-COO 25Nov 14:40-21:20 Boeing 777]
-
-== RT CDG 21d nonstop (control) country=BE
-  1 combos in 0.5s
-   OUT 765.0 EUR stops=0 [AF805 COO-CDG 04Nov 23:50-06:25 Boeing 777]
-   RET 765.0 EUR stops=0 [AF804 CDG-COO 25Nov 14:40-21:20 Boeing 777]
-
-== SearchDates BRU 21d nonstop, 10 departure dates
-  0 dates in 0.4s
+Live check 2026-10-05 10:05 UTC
+BRU out 2026-11-04: None  (0.4s)
+BRU in 2026-11-25: {'price': 410, 'airline': 'Royal Air Maroc', 'kind': 'same-plane', 'via': 'CMN'}  (0.2s)
+AMS out 2026-11-04: None  (0.3s)
+AMS in 2026-12-02: None  (0.2s)
+IST out 2026-11-04: {'price': 625, 'airline': 'Turkish Airlines', 'kind': 'same-plane', 'via': 'ABJ'}  (0.3s)
+ABJ out 2026-11-04: {'price': 285, 'airline': 'Air Senegal', 'kind': 'nonstop', 'via': ''}  (0.3s)
+DSS out 2026-11-04: {'price': 383, 'airline': 'ASKY', 'kind': 'same-plane', 'via': 'LFW'}  (0.4s)
+SSG in 2026-11-18: None  (0.3s)
