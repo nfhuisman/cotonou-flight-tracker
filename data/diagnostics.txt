@@ -1,116 +1,65 @@
-Diagnostics 2026-10-05T09:50:32 UTC
+Diagnostics 2026-10-05T09:52:14 UTC
 fast-flights: 3.1.0
 primp: 2.0.1
-protobuf: 7.36.2
-selectolax: 1.0.0
 
-== get_flights: round-trip COO-BRU (tracker settings)
-  url: https://www.google.com/travel/flights/search?tfs=GhwSCjIwMjYtMTEtMDQoAWoFEgNDT09yBRIDQlJVGhwSCjIwMjYtMTEtMTgoAWoFEgNCUlVyBRIDQ09PQgEBSAGIAQGYAQE=&tfu=EgQIABABIgA&hl=en&curr=EUR
-  OK: 0 itineraries; prices: []
+== RT CDG plain
+  url: https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjYtMTEtMDRqBRIDQ09PcgUSA0NERxoaEgoyMDI2LTExLTE4agUSA0NER3IFEgNDT09CAQFIAZgBAQ==&tfu=EgQIABABIgA&hl=en&curr=EUR
+  top-level: [list, list, NoneType, list, NoneType, list, list, list, NoneType, NoneType, NoneType, list, …]#32
+  p[0]: [None, [[int, int, int]#3, None, None, None, None, [list]#1]#6, 0, 'TnPDauqNI-jj8LAP3YrN', 'HneUtO0nI8x4APTf4QBG']#5
+  p[1]: [[[list]#1, [list]#1]#2, [[list]#1, [list]#1]#2]#2
+  p[3]: [[[list, list, NoneType, int, list, list, int, list, str, list, int]#11, [list, list, NoneType, int, list, list, int, list, str, list, int]#11, [list, list, NoneType, int, list, list, int, list, str, list, int]#11, [list, list, NoneType, int, list, list, int, list, str, list, int]#11, [list, list, NoneType, int, list, list, int, list, str, list, int]#11, [list, list, NoneType, int, list, list, int
+  p[5]: [3, [None, 765]#2, [None, 660]#2, [None, -106]#2, [None, 590]#2, [None, 950]#2, 1, None, None, None, [[list, list, list, list, list, list, list, list, list, list, list, list, …]#62]#1, [[int, int, int]#3, None, None, None, None, [list]#1]#6, …]#13
+  p[6]: [[[str, str, list, list]#4, None, [list, NoneType, NoneType, NoneType, NoneType, list]#6]#3]#1
+  p[7]: [[[NoneType, int]#2, [NoneType, int]#2]#2, [[list, list, list]#3, [list, list, list, list, list, list, list, list, list, list, list, list, …]#14]#2, [[list, list, list, list, list, list, list, list, list, list, list, list]#12, 60, 1680]#3, [395, 2500]#2, [[int, int, int]#3]#1, [1, 0, 1, 0]#4, None, [0]#1]#8
+  p[11]: [['AF', 'Air France', 'https://wwws.airfran']#3, ['KP', 'ASKY', 'https://www.flyasky.']#3, ['OS', 'Austrian', 'https://www.austrian']#3, ['BA', 'British Airways', 'http://www.britishai']#3, ['SN', 'Brussels Airlines', 'https://www.brussels']#3, ['ET', 'Ethiopian', 'https://www.ethiopia']#3, ['AZ', 'ITA', 'https://www.ita-airw']#3, ['LH', 'Lufthansa', 'https://www.lufthans']#3, ['TK', 'Turkish Airl
+  parsed: 17 itineraries; cheapest: [765, 881, 911, 967]
 
-== get_flights: one-way COO-CDG
-  url: https://www.google.com/travel/flights/search?tfs=GhwSCjIwMjYtMTEtMDQoAWoFEgNDT09yBRIDQ0RHQgEBSAGIAQGYAQI=&tfu=EgQIABABIgA&hl=en&curr=EUR
-  OK: 4 itineraries; prices: [533, 610, 693, 966]
-  first: ['Air France'] [('COO', 'CDG', 'Boeing 777')]
+== RT CDG max_stops=1
+  url: https://www.google.com/travel/flights/search?tfs=GhwSCjIwMjYtMTEtMDQoAWoFEgNDT09yBRIDQ0RHGhwSCjIwMjYtMTEtMTgoAWoFEgNDREdyBRIDQ09PQgEBSAGYAQE=&tfu=EgQIABABIgA&hl=en&curr=EUR
+  top-level: [list, list, NoneType, list, NoneType, list, list, list, NoneType, NoneType, NoneType, list, …]#31
+  p[0]: [None, [[int, int, int]#3, None, None, None, None, [list]#1]#6, 0, 'TnPDapmGOOjj8LAP3YrN', 'HvaEQAAd2rgYANv9wgBG']#5
+  p[1]: [[[list]#1, [list]#1]#2, [[list]#1, [list]#1]#2]#2
+  p[3]: [[[list, list, NoneType, int, list, list, int, list, str, list, int]#11, [list, list, NoneType, int, list, list, int, list, str, list, int]#11, [list, list, NoneType, int, list, list, int, list, str, list, int]#11, [list, list, NoneType, int, list, list, int, list, str, list, int]#11]#4, 1, 0, 0, [1]#1]#5
+  p[5]: [2, [None, 765]#2, [None, 745]#2, [None, -21]#2, [None, 650]#2, [None, 1100]#2, 1, None, None, None, [[list, list, list, list, list, list, list, list, list, list, list, list, …]#62]#1, [[int, int, int]#3, None, None, None, None, [list]#1]#6, …]#13
+  p[6]: [[[str, str, list, list]#4, None, [list, NoneType, NoneType, NoneType, NoneType, list]#6]#3]#1
+  p[7]: [[[NoneType, int]#2, [NoneType, int]#2]#2, [[list, list, list]#3, [list, list, list, list, list, list, list, list, list, list, list, list, …]#14]#2, [[list, list, list, list, list, list, list, list, list, list, list, list]#12, 60, 1680]#3, [395, 2500]#2, [[int, int, int]#3]#1, [1, 0, 1, 0]#4, None, [0]#1]#8
+  p[11]: [['AF', 'Air France', 'https://wwws.airfran']#3, ['ET', 'Ethiopian', 'https://www.ethiopia']#3]#2
+  parsed: 4 itineraries; cheapest: [765, 967, 1053, 1103]
 
-== get_flights: round-trip COO-IST, no lang/currency
-  url: https://www.google.com/travel/flights/search?tfs=GhwSCjIwMjYtMTEtMDQoAWoFEgNDT09yBRIDSVNUGhwSCjIwMjYtMTEtMTgoAWoFEgNJU1RyBRIDQ09PQgEBSAGIAQGYAQE=&tfu=EgQIABABIgA&hl=&curr=
-  OK: 0 itineraries; prices: []
+== RT CDG hide_separate
+  url: https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjYtMTEtMDRqBRIDQ09PcgUSA0NERxoaEgoyMDI2LTExLTE4agUSA0NER3IFEgNDT09CAQFIAYgBAZgBAQ==&tfu=EgQIABABIgA&hl=en&curr=EUR
+  top-level: [list, list, NoneType, list, NoneType, NoneType, list, list, NoneType, NoneType, NoneType, list, …]#32
+  p[0]: [None, [[int, int, int]#3, None, None, None, None, [list]#1]#6, 0, 'T3PDauCvEY-38LAPz_2q', 'HQIRr9w2RU7kAOG8TgBG']#5
+  p[1]: [[[list]#1, [list]#1]#2, [[list]#1, [list]#1]#2]#2
+  p[3]: [[[list, list, NoneType, int, list, list, int, list, str, list, int]#11, [list, list, NoneType, int, list, list, int, list, str, list, int]#11, [list, list, NoneType, int, list, list, int, list, str, list, int]#11, [list, list, NoneType, int, list, list, int, list, str, list, int]#11, [list, list, NoneType, int, list, list, int, list, str, list, int]#11, [list, list, NoneType, int, list, list, int
+  p[6]: [[[str, str, list, list]#4, None, [list, NoneType, NoneType, NoneType, NoneType, list]#6]#3]#1
+  p[7]: [[[NoneType, int]#2, [NoneType, int]#2]#2, [[list, list, list]#3, [list, list, list, list, list, list, list, list, list, list, list, list, …]#14]#2, [[list, list, list, list, list, list, list, list, list, list, list, list]#12, 60, 1680]#3, [395, 2500]#2, [[int, int, int]#3]#1, [1, 0, 1, 0]#4, None, [0]#1]#8
+  p[11]: [['AF', 'Air France', 'https://wwws.airfran']#3, ['KP', 'ASKY', 'https://www.flyasky.']#3, ['OS', 'Austrian', 'https://www.austrian']#3, ['BA', 'British Airways', 'http://www.britishai']#3, ['SN', 'Brussels Airlines', 'https://www.brussels']#3, ['ET', 'Ethiopian', 'https://www.ethiopia']#3, ['AZ', 'ITA', 'https://www.ita-airw']#3, ['LH', 'Lufthansa', 'https://www.lufthans']#3, ['TK', 'Turkish Airl
+  parsed: 17 itineraries; cheapest: [765, 881, 911, 967]
 
-== alt fetch impersonate=chrome_145 cookies=none
-  status: 200 final url: https://www.google.com/travel/flights?tfs=GhwSCjIwMjYtMTEtMDQoAWoFEgNDT09yBRIDQlJVGhwSCjIwMjYtMTEtMTgoAWoFEgNCUlVyBRIDQ09PQgEBSAGIAQGYAQE%3D&hl=en&tfu
-  PARSE OK: 0 itineraries; cheapest: None
+== OW CDG plain
+  url: https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjYtMTEtMDRqBRIDQ09PcgUSA0NER0IBAUgBmAEC&tfu=EgQIABABIgA&hl=en&curr=EUR
+  json failed: Extra data: line 1 column 236 (char 235) ErrorResponse",[[null,[[1791193935709058,118987951,2786372418],null,null,null,null,[[0]]],0,"T3PDasKjK6-53ugPwtbSsAo","HCSY5nm8oXvEAOA4RgBG----------vwna2AAAAAGrDc08KrC90A"],0]]]],errorHasStatus: true
+  no ds:1 payload; title: Cotonou to Paris | Google Flights
 
-== alt fetch impersonate=chrome_145 cookies=consent
-  status: 200 final url: https://www.google.com/travel/flights?tfs=GhwSCjIwMjYtMTEtMDQoAWoFEgNDT09yBRIDQlJVGhwSCjIwMjYtMTEtMTgoAWoFEgNCUlVyBRIDQ09PQgEBSAGIAQGYAQE%3D&hl=en&tfu
-  PARSE OK: 0 itineraries; cheapest: None
+== OW BRU max_stops=1
+  url: https://www.google.com/travel/flights/search?tfs=GhwSCjIwMjYtMTEtMDQoAWoFEgNDT09yBRIDQlJVQgEBSAGYAQI=&tfu=EgQIABABIgA&hl=en&curr=EUR
+  top-level: [list, list, NoneType, list, NoneType, list, NoneType, list, NoneType, NoneType, NoneType, list, …]#32
+  p[0]: [None, [[int, int, int]#3, None, None, None, None, [list]#1]#6, 0, 'T3PDavGpPIGd3ugPuNur', 'HI97iUrzGy8wAOkuZABG']#5
+  p[1]: [[[list]#1, [list]#1]#2]#1
+  p[3]: [[[list, list, NoneType, int, list, list, int, list, str, list, int]#11, [list, list, NoneType, int, list, list, int, list, str, list, int]#11]#2, 0, 0, 0, [1]#1]#5
+  p[5]: [4, [None, 619]#2, [None, 513]#2, [None, -107]#2, [None, 480]#2, [None, 650]#2, 1, None, None, None, [[list, list, list, list, list, list, list, list, list, list, list, list, …]#62]#1, [[int, int, int]#3, None, None, None, None, [list]#1]#6, …]#13
+  p[7]: [[[NoneType, int]#2, [NoneType, int]#2]#2, [[list, list, list]#3, [list, list, list, list, list, list, list, list, list, list, list, list, …]#13]#2, [[list, list, list, list, list, list, list, list, list, list, list, list, …]#13, 50, 2015]#3, [885, 2455]#2, [[int, int, int]#3]#1, [1, 0, 0, 0]#4, None, [0]#1]#8
+  p[11]: [['KP', 'ASKY', 'https://www.flyasky.']#3, ['SN', 'Brussels Airlines', 'https://www.brussels']#3, ['ET', 'Ethiopian', 'https://www.ethiopia']#3]#3
+  parsed: 2 itineraries; cheapest: [619]
 
-== alt fetch impersonate=chrome_131 cookies=none
-  FAILED:
-Traceback (most recent call last):
-  File "/home/runner/work/cotonou-flight-tracker/cotonou-flight-tracker/diagnose.py", line 101, in main
-    c = Client(**kw)
-        ^^^^^^^^^^^^
-primp.BuilderError: Invalid impersonate: "chrome_131"
-
-
-== alt fetch impersonate=chrome_131 cookies=consent
-  FAILED:
-Traceback (most recent call last):
-  File "/home/runner/work/cotonou-flight-tracker/cotonou-flight-tracker/diagnose.py", line 101, in main
-    c = Client(**kw)
-        ^^^^^^^^^^^^
-primp.BuilderError: Invalid impersonate: "chrome_131"
-
-
-== alt fetch impersonate=chrome_120 cookies=none
-  FAILED:
-Traceback (most recent call last):
-  File "/home/runner/work/cotonou-flight-tracker/cotonou-flight-tracker/diagnose.py", line 101, in main
-    c = Client(**kw)
-        ^^^^^^^^^^^^
-primp.BuilderError: Invalid impersonate: "chrome_120"
-
-
-== alt fetch impersonate=chrome_120 cookies=consent
-  FAILED:
-Traceback (most recent call last):
-  File "/home/runner/work/cotonou-flight-tracker/cotonou-flight-tracker/diagnose.py", line 101, in main
-    c = Client(**kw)
-        ^^^^^^^^^^^^
-primp.BuilderError: Invalid impersonate: "chrome_120"
-
-
-== alt fetch impersonate=safari_18 cookies=none
-  FAILED:
-Traceback (most recent call last):
-  File "/home/runner/work/cotonou-flight-tracker/cotonou-flight-tracker/diagnose.py", line 101, in main
-    c = Client(**kw)
-        ^^^^^^^^^^^^
-primp.BuilderError: Invalid impersonate: "safari_18"
-
-
-== alt fetch impersonate=safari_18 cookies=consent
-  FAILED:
-Traceback (most recent call last):
-  File "/home/runner/work/cotonou-flight-tracker/cotonou-flight-tracker/diagnose.py", line 101, in main
-    c = Client(**kw)
-        ^^^^^^^^^^^^
-primp.BuilderError: Invalid impersonate: "safari_18"
-
-
-== alt fetch impersonate=firefox_133 cookies=none
-  FAILED:
-Traceback (most recent call last):
-  File "/home/runner/work/cotonou-flight-tracker/cotonou-flight-tracker/diagnose.py", line 101, in main
-    c = Client(**kw)
-        ^^^^^^^^^^^^
-primp.BuilderError: Invalid impersonate: "firefox_133"
-
-
-== alt fetch impersonate=firefox_133 cookies=consent
-  FAILED:
-Traceback (most recent call last):
-  File "/home/runner/work/cotonou-flight-tracker/cotonou-flight-tracker/diagnose.py", line 101, in main
-    c = Client(**kw)
-        ^^^^^^^^^^^^
-primp.BuilderError: Invalid impersonate: "firefox_133"
-
-
-== alt fetch impersonate=None cookies=none
-  status: 200 final url: https://www.google.com/travel/flights/unsupported?tfs=GhwSCjIwMjYtMTEtMDQoAWoFEgNDT09yBRIDQlJVGhwSCjIwMjYtMTEtMTgoAWoFEgNCUlVyBRIDQ09PQgEBSAGIAQGYAQE%
-  parse failed: AttributeError: 'NoneType' object has no attribute 'text'
-  length: 1203978
-  title: Google Flights
-  has 'ds:1' script: False
-  mentions consent: False | unsupported: True | captcha/unusual traffic: True
-  visible text start: Google Flights Skip to main content Accessibility feedback Change appearance Sign in Explore Flights Hotels Vacation rentals Explore Flights Hotels Vacation rentals Flight Deals Tracked flight prices Tracked hotel prices Change language Change currency Change location Feedback Help Time for an upgrade Looks like your browser needs a boost. To get the best experience, upgrade to a recent version of Chrome, Firefox, Safari, or Microsoft Edge. You can also choose to proceed anyway, but some features may look different or not work as expected. Proceed anyway Google apps Main menu
-
-== alt fetch impersonate=None cookies=consent
-  status: 200 final url: https://www.google.com/travel/flights/unsupported?tfs=GhwSCjIwMjYtMTEtMDQoAWoFEgNDT09yBRIDQlJVGhwSCjIwMjYtMTEtMTgoAWoFEgNCUlVyBRIDQ09PQgEBSAGIAQGYAQE%
-  parse failed: AttributeError: 'NoneType' object has no attribute 'text'
-  length: 1215207
-  title: Google Flights
-  has 'ds:1' script: False
-  mentions consent: False | unsupported: True | captcha/unusual traffic: True
-  visible text start: Google Flights Skip to main content Accessibility feedback Change appearance Sign in Explore Flights Hotels Vacation rentals Explore Flights Hotels Vacation rentals Flight Deals Tracked flight prices Tracked hotel prices Change language Change currency Change location Feedback Help Time for an upgrade Looks like your browser needs a boost. To get the best experience, upgrade to a recent version of Chrome, Firefox, Safari, or Microsoft Edge. You can also choose to proceed anyway, but some features may look different or not work as expected. Proceed anyway Google apps Main menu
+== OW IST max_stops=1
+  url: https://www.google.com/travel/flights/search?tfs=GhwSCjIwMjYtMTEtMDQoAWoFEgNDT09yBRIDSVNUQgEBSAGYAQI=&tfu=EgQIABABIgA&hl=en&curr=EUR
+  top-level: [list, list, NoneType, list, NoneType, list, NoneType, list, NoneType, NoneType, NoneType, list, …]#32
+  p[0]: [None, [[int, int, int]#3, None, None, None, None, [list]#1]#6, 0, 'UHPDavy-Fa-53ugPwtbS', 'HzEiJYHSMiFUAOL3jwBG']#5
+  p[1]: [[[list]#1, [list]#1]#2]#1
+  p[3]: [[[list, list, NoneType, int, list, list, int, list, str, NoneType, int]#11, [list, list, NoneType, int, list, list, int, list, str, list, int]#11, [list, list, NoneType, int, list, list, int, list, str, NoneType, int]#11, [list, list, NoneType, int, list, list, int, list, str, NoneType, int]#11]#4, 1, 0, 0, [1]#1]#5
+  p[5]: [3, [None, 618]#2, [None, 601]#2, [None, -18]#2, [None, 560]#2, [None, 660]#2, 1, None, None, None, [[list, list, list, list, list, list, list, list, list, list, list, list, …]#29]#1, [[int, int, int]#3, None, None, None, None, [list]#1]#6, …]#13
+  p[7]: [[[NoneType, int]#2, [NoneType, int]#2]#2, [[list, list, list]#3, [list, list, list, list, list, list, list, list, list, list, list, list, …]#13]#2, [[list, list, list, list, list, list, list, list, list, list]#10, 60, 1405]#3, [600, 2470]#2, [[int, int]#2]#1, [1, 0, 0, 0]#4, None, [0]#1]#8
+  p[11]: [['AF', 'Air France', 'https://wwws.airfran']#3, ['ET', 'Ethiopian', 'https://www.ethiopia']#3, ['TK', 'Turkish Airlines', 'https://www.turkisha']#3]#3
+  parsed: 4 itineraries; cheapest: [618, 625, 697, 936]
