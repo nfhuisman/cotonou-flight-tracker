@@ -1,48 +1,9 @@
-Live check 2026-10-05 10:07 UTC
-BRU out 2026-11-04: None  (0.5s)
-BRU in 2026-11-25: None  (0.3s)
-AMS out 2026-11-04: None  (0.2s)
-AMS in 2026-12-02: None  (0.3s)
-IST out 2026-11-04: {'price': 625, 'airline': 'Turkish Airlines', 'kind': 'same-plane', 'via': 'ABJ'}  (0.3s)
-ABJ out 2026-11-04: {'price': 285, 'airline': 'Air Senegal', 'kind': 'nonstop', 'via': ''}  (0.3s)
-DSS out 2026-11-04: {'price': 385, 'airline': 'Air Senegal', 'kind': 'same-plane', 'via': 'ABJ'}  (0.3s)
-SSG in 2026-11-18: None  (0.3s)
-
-== AMS out 2026-11-04 any stops
-  0 itineraries
-
-== AMS in 2026-11-04 any stops
-  0 itineraries
-
-== AMS out 2026-11-07 any stops
-  0 itineraries
-
-== AMS in 2026-11-07 any stops
-  0 itineraries
-
-== AMS out 2026-11-10 any stops
-  0 itineraries
-
-== AMS in 2026-11-10 any stops
-  0 itineraries
-
-== BRU out 2026-11-07 (Sat)
-  None itineraries
-
-== BRU in 2026-11-28 (Sat)
-  4 itineraries
-  570 change via=ADD layover=120 ET751 BRU-ADD 28 21:20-06:30 | ET917 ADD-COO 29 08:30-12:05
-  695 same-plane via=ACC layover=75 SN295 BRU-ACC 28 12:00-17:45 | SN295 ACC-COO 28 19:00-21:05
-  924 change via=CMN layover=1550 AT833 BRU-CMN 28 17:35-19:55 | AT559 CMN-COO 29 21:45-03:15
-  1062 change via=ADD layover=1560 ET751 BRU-ADD 28 21:20-06:30 | ET917 ADD-COO 30 08:30-12:05
-
-== CDG out 2026-11-04
-  None itineraries
-
-== CDG->AMS 2026-11-05
-  12 itineraries
-  148 nonstop via= layover=None AF1640 CDG-AMS 05 11:40-13:10
-  148 nonstop via= layover=None AF1740 CDG-AMS 05 12:30-13:50
-  148 nonstop via= layover=None AF1140 CDG-AMS 05 17:10-18:35
-  148 nonstop via= layover=None AF1440 CDG-AMS 05 18:10-19:35
-  149 nonstop via= layover=None KL1404 CDG-AMS 05 09:45-11:10
+Live check 2026-10-05 10:09 UTC
+BRU out 2026-11-07: {'price': 706, 'airline': 'Brussels Airlines', 'kind': 'nonstop', 'via': ''}  (0.7s)
+BRU in 2026-11-28: {'price': 695, 'airline': 'Brussels Airlines', 'kind': 'same-plane', 'via': 'ACC'}  (0.3s)
+AMS out 2026-11-04: {'price': 681, 'airline': 'Air France', 'kind': 'change', 'via': 'CDG'}  (2.5s)
+AMS in 2026-12-02: {'price': 992, 'airline': 'KLM, Air France', 'kind': 'change', 'via': 'CDG'}  (2.7s)
+AMS out 2026-11-07: None  (0.3s)
+IST out 2026-11-04: {'price': 625, 'airline': 'Turkish Airlines', 'kind': 'same-plane', 'via': 'ABJ'}  (0.4s)
+CMN in 2026-11-04: {'price': 592, 'airline': 'Royal Air Maroc', 'kind': 'nonstop', 'via': ''}  (3.7s)
+ACC out 2026-11-04: None  (0.5s)
