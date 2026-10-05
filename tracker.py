@@ -60,6 +60,7 @@ def load_config(root: Path) -> tuple[dict, list[dict]]:
                     "group": group["name"],
                     "allow_change": bool(r.get("allow_change", False)),
                     "via": r.get("via") or None,
+                    "connect": r.get("connect"),
                     "min_layover": r.get("min_layover_minutes"),
                     "max_layover": r.get("max_layover_minutes"),
                     "stay_days": int(stay),
@@ -174,26 +175,20 @@ def suitable(route: dict, kind: str, via: str, layover: int | None) -> bool:
     return True
 
 
-def fetch_google(origin: str, route: dict, direction: str, day: dt.date,
-                 settings: dict) -> dict | None:
-    """Cheapest suitable one-way fare for one leg, or None if there is none."""
+def search_itineraries(a: str, b: str, day: dt.date, settings: dict, max_stops: int | None = 1,
+                       leg_filters: dict | None = None) -> tuple[list[dict], str]:
+    """All priced itineraries Google shows for a one-way search, plus the search URL."""
     from fast_flights import FlightQuery, Passengers, create_query
     from fast_flights.fetcher import fetch_flights_html
 
-    leg_filters = {}
-    if route["allow_change"]:
-        leg_filters = {"connecting_airports": route["via"],
-                       "min_layover_minutes": route["min_layover"],
-                       "max_layover_minutes": route["max_layover"]}
-    a, b = (origin, route["code"]) if direction == "out" else (route["code"], origin)
     q = create_query(
-        flights=[FlightQuery(date=day.isoformat(), from_airport=a, to_airport=b, **leg_filters)],
+        flights=[FlightQuery(date=day.isoformat(), from_airport=a, to_airport=b, **(leg_filters or {}))],
         trip="one-way",
         seat="economy",
         passengers=Passengers(adults=int(settings.get("adults", 1))),
         language="en",
         currency=settings.get("currency", "EUR"),
-        max_stops=1,
+        max_stops=max_stops,
     )
     results = None
     for attempt in range(3):  # Google sometimes answers with an error page; retry
@@ -205,25 +200,87 @@ def fetch_google(origin: str, route: dict, direction: str, day: dt.date,
         if results is not None:
             break
         time.sleep(3 + 3 * attempt)
+    return [i for i in results or [] if i["price"]], q.url()
+
+
+def describe(itins: list[dict], kind: str, via: str) -> dict:
+    segs = [x for i in itins for x in i["segs"]]
+    names: list[str] = []
+    for i in itins:
+        for n in i["airlines"]:
+            if n not in names:
+                names.append(n)
+    return {"price": int(sum(i["price"] for i in itins)), "airline": ", ".join(names),
+            "kind": kind, "via": via, "duration_min": sum(x["minutes"] for x in segs)}
+
+
+def fetch_google(origin: str, route: dict, direction: str, day: dt.date,
+                 settings: dict) -> dict | None:
+    """Cheapest suitable one-way fare for one leg, or None if there is none."""
+    if route.get("connect"):
+        return fetch_connection(origin, route, direction, day, settings)
+
+    leg_filters = {}
+    if route["allow_change"]:
+        leg_filters = {"connecting_airports": route["via"],
+                       "min_layover_minutes": route["min_layover"],
+                       "max_layover_minutes": route["max_layover"]}
+    a, b = (origin, route["code"]) if direction == "out" else (route["code"], origin)
+    itins, url = search_itineraries(a, b, day, settings, 1, leg_filters)
 
     best = None
-    for itin in results or []:
-        if not itin["price"]:
-            continue
+    for itin in itins:
         kind, via, layover = classify(itin)
         if not suitable(route, kind, via, layover):
             continue
         if best is None or itin["price"] < best["price"]:
-            best = {
-                "price": int(itin["price"]),
-                "airline": ", ".join(itin["airlines"]),
-                "kind": kind,
-                "via": via,
-                "duration_min": sum(x["minutes"] for x in itin["segs"]),
-            }
+            best = describe([itin], kind, via)
     if best:
-        best["link"] = q.url()
+        best["link"] = url
     return best
+
+
+def fetch_connection(origin: str, route: dict, direction: str, day: dt.date,
+                     settings: dict) -> dict | None:
+    """Long-haul nonstop to the hub plus a separate short flight on, with a minimum change time.
+
+    Used for Amsterdam: Google shows no Cotonou-Amsterdam results to automated
+    searches, so the trip is built from Cotonou-Paris and Paris-Amsterdam.
+    """
+    hub, dest = route["connect"], route["code"]
+    lo = route["min_layover"] or 120
+    hi = route["max_layover"] or 360
+    plain = {**route, "allow_change": False}
+
+    def ok(i):
+        return suitable(plain, *classify(i))
+
+    if direction == "out":
+        longs, url = search_itineraries(origin, hub, day, settings, 1)
+        longs = [i for i in longs if ok(i)]
+        if not longs:
+            return None
+        shorts = []
+        for d in sorted({i["segs"][-1]["arr"].date() for i in longs}):
+            time.sleep(1.5)
+            shorts += [i for i in search_itineraries(hub, dest, d, settings, 0)[0] if ok(i)]
+        pairs = [(a, b) for a in longs for b in shorts
+                 if lo <= (b["segs"][0]["dep"] - a["segs"][-1]["arr"]).total_seconds() / 60 <= hi]
+    else:
+        longs, url = search_itineraries(hub, origin, day, settings, 1)
+        longs = [i for i in longs if ok(i)]
+        if not longs:
+            return None
+        time.sleep(1.5)
+        shorts = [i for i in search_itineraries(dest, hub, day, settings, 0)[0] if ok(i)]
+        pairs = [(b, a) for a in longs for b in shorts
+                 if lo <= (a["segs"][0]["dep"] - b["segs"][-1]["arr"]).total_seconds() / 60 <= hi]
+    if not pairs:
+        return None
+    best = min(pairs, key=lambda p: p[0]["price"] + p[1]["price"])
+    out = describe(list(best), "change", hub)
+    out["link"] = url
+    return out
 
 
 def trip_link(origin: str, code: str, depart: str, ret: str, cur: str) -> str:

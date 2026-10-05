@@ -17,6 +17,8 @@
 #                  plane (same airline + aircraft type, short stop)
 #                  true  = one change of plane is allowed
 #   via            airports where a change is allowed (only with allow_change)
+#   connect        build the trip from a nonstop to this hub plus a separate flight
+#                  on (Google shows no Cotonou-Amsterdam results to automated searches)
 #   min_layover_minutes / max_layover_minutes   limits for that change
 
 settings:
@@ -37,9 +39,8 @@ groups:
       - {code: BRU, city: Brussels}
       - code: AMS
         city: Amsterdam
-        note: "Via Paris CDG, with a change of at least 2 hours"
-        allow_change: true
-        via: [CDG]
+        note: "Nonstop to Paris CDG plus a separate flight to Amsterdam, at least 2 hours to change"
+        connect: CDG              # built from Cotonou-Paris + Paris-Amsterdam
         min_layover_minutes: 120
         max_layover_minutes: 360
 
