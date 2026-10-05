@@ -1,9 +1,23 @@
-Live check 2026-10-05 10:05 UTC
-BRU out 2026-11-04: None  (0.4s)
-BRU in 2026-11-25: {'price': 410, 'airline': 'Royal Air Maroc', 'kind': 'same-plane', 'via': 'CMN'}  (0.2s)
+Live check 2026-10-05 10:06 UTC
+BRU out 2026-11-04: None  (0.6s)
+BRU in 2026-11-25: None  (0.3s)
 AMS out 2026-11-04: None  (0.3s)
-AMS in 2026-12-02: None  (0.2s)
-IST out 2026-11-04: {'price': 625, 'airline': 'Turkish Airlines', 'kind': 'same-plane', 'via': 'ABJ'}  (0.3s)
+AMS in 2026-12-02: None  (0.4s)
+IST out 2026-11-04: {'price': 625, 'airline': 'Turkish Airlines', 'kind': 'same-plane', 'via': 'ABJ'}  (0.4s)
 ABJ out 2026-11-04: {'price': 285, 'airline': 'Air Senegal', 'kind': 'nonstop', 'via': ''}  (0.3s)
-DSS out 2026-11-04: {'price': 383, 'airline': 'ASKY', 'kind': 'same-plane', 'via': 'LFW'}  (0.4s)
+DSS out 2026-11-04: {'price': 385, 'airline': 'Air Senegal', 'kind': 'same-plane', 'via': 'ABJ'}  (0.4s)
 SSG in 2026-11-18: None  (0.3s)
+
+== AMS out, via CDG 120-360
+  0 itineraries
+
+== AMS out, via CDG only
+  0 itineraries
+
+== AMS out, no filters
+  0 itineraries
+
+== BRU out, no filters
+  2 itineraries
+  619 change via=ADD layover=260 ET916 COO-ADD 04 12:50-20:30 | ET750 ADD-BRU 05 00:50-06:20
+  None change via=LFW layover=2015 KP37 COO-LFW 04 12:05-11:45 | SN251 LFW-BRU 05 21:20-05:00
