@@ -1,7 +1,8 @@
 # Cotonou flight price tracker
 
 Checks Google Flights every morning for return fares from Cotonou (COO), keeps the
-price history, and sends a Telegram message when a fare is clearly cheaper than usual.
+price history, and sends a phone notification (ntfy, or Telegram) when a fare is clearly
+cheaper than usual.
 A dashboard with price charts is published on GitHub Pages.
 
 ## What it watches
@@ -47,16 +48,16 @@ searches per daily run (~35 minutes).
 
 ## One-time setup
 
-1. **Telegram bot.** In Telegram, open **@BotFather**, send `/newbot`, pick a name, and
-   copy the token it gives you. Open your new bot and press **Start**. Then message
-   **@userinfobot**; it replies with your numeric **Id**.
+1. **Notifications (ntfy).** Install the free **ntfy** app (iPhone or Android), tap **+**,
+   and subscribe to a topic name only you know (it works like a password, e.g.
+   `cotonou-flights-` plus some random characters). No account needed.
+   Telegram also still works if `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are set.
 2. **Secrets.** In this repository: *Settings → Secrets and variables → Actions →
-   New repository secret*. Add `TELEGRAM_BOT_TOKEN` (the token) and `TELEGRAM_CHAT_ID`
-   (your Id).
+   New repository secret*. Add `NTFY_TOPIC` with your topic name.
 3. **Dashboard.** *Settings → Pages → Build and deployment*: Source **Deploy from a
    branch**, branch **main**, folder **/docs**, Save.
-4. **Test.** *Actions → Track flight prices → Run workflow*, choose **test-telegram**.
-   You should get a Telegram message within a minute. Run it again with **track** to do
+4. **Test.** *Actions → Track flight prices → Run workflow*, choose **test-notification**.
+   You should get a notification within a minute. Run it again with **track** to do
    the first real price check (about 35 minutes).
 
 After that it runs by itself every day at 06:17 Cotonou time. The dashboard lives at

@@ -13,7 +13,7 @@ Once a day (via GitHub Actions) this script:
 
 Run locally:
   python tracker.py                 # normal daily run
-  python tracker.py --test-telegram # just send a test message
+  python tracker.py --test-notify   # just send a test notification
   python tracker.py --simulate 40   # fake 40 days of data into ./_sim (no internet needed)
 """
 
@@ -477,11 +477,48 @@ def fmt_date(iso: str) -> str:
     return dt.date.fromisoformat(iso).strftime("%a %-d %b")
 
 
+def html_to_text(text: str) -> tuple[str, str]:
+    """Plain text for ntfy, plus the first link (opened when the notification is tapped)."""
+    import html
+    import re
+    links = re.findall(r'<a href="([^"]+)">', text)
+    text = re.sub(r'<a href="([^"]+)">([^<]+)</a>', r"\2: \1", text)
+    text = html.unescape(re.sub(r"<[^>]+>", "", text))
+    return text, (links[0] if links else "")
+
+
+def send_ntfy(text: str, title: str) -> bool:
+    """Push notification via ntfy.sh (free app, no account; the topic name is the password)."""
+    topic = os.environ.get("NTFY_TOPIC", "").strip()
+    if not topic:
+        return False
+    body, click = html_to_text(text)
+    headers = {"Title": title, "Tags": "airplane"}
+    if click:
+        headers["Click"] = click
+    req = urllib.request.Request(f"https://ntfy.sh/{urllib.parse.quote(topic)}",
+                                 data=body.encode("utf-8")[:4000], headers=headers, method="POST")
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        return resp.status == 200
+
+
+def send_notification(text: str, title: str = "Flights from Cotonou") -> bool:
+    """Send to every configured channel; a failing channel never breaks the daily run."""
+    sent = False
+    for name, fn in (("ntfy", lambda: send_ntfy(text, title)), ("Telegram", lambda: send_telegram(text))):
+        try:
+            sent = fn() or sent
+        except Exception as e:
+            print(f"{name} notification failed: {type(e).__name__}: {e}")
+    if not sent:
+        print("No notification channel worked; message was:\n" + text)
+    return sent
+
+
 def send_telegram(text: str) -> bool:
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
     chat = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
     if not token or not chat:
-        print("Telegram not configured; message would have been:\n" + text)
         return False
     chunks, cur = [], ""
     for block in text.split("\n\n"):
@@ -636,13 +673,13 @@ def run(root: Path, today: dt.date, fetch, pause=(1.5, 4.0), notify=True,
     dash = dashboard_url()
     if notify:
         if len(jobs) and failed / len(jobs) > 0.5:
-            send_telegram(f"⚠️ Flight tracker: {failed} of {len(jobs)} searches failed today. "
+            send_notification(f"⚠️ Flight tracker: {failed} of {len(jobs)} searches failed today. "
                           "Google may be blocking the requests; the run log on GitHub "
                           "(Actions tab) shows the errors.")
         if fresh:
-            send_telegram(deal_message(fresh, cur, dash))
+            send_notification(deal_message(fresh, cur, dash), "Cheaper than usual from Cotonou")
         if today.weekday() == 6:
-            send_telegram(weekly_message(analysis["summary"], cur, dash))
+            send_notification(weekly_message(analysis["summary"], cur, dash), "Weekly flight overview")
     log(f"Done: {ok} fares, {empty} without suitable flights, {failed} errors, "
         f"{len(fresh)} new deal alert(s).")
     return {"analysis": analysis, "fresh": fresh, "stats": run_stats}
@@ -696,13 +733,13 @@ def simulate(days: int) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--test-telegram", action="store_true")
+    ap.add_argument("--test-notify", "--test-telegram", dest="test_notify", action="store_true")
     ap.add_argument("--simulate", type=int, metavar="DAYS")
     ap.add_argument("--no-notify", action="store_true")
     a = ap.parse_args()
 
-    if a.test_telegram:
-        ok = send_telegram("✅ Flight tracker connected. You'll get a message here when a "
+    if a.test_notify:
+        ok = send_notification("✅ Flight tracker connected. You'll get a message here when a "
                            "fare from Cotonou is clearly cheaper than usual, plus an "
                            "overview every Sunday.\n\n" + dashboard_url())
         sys.exit(0 if ok else 1)
